@@ -22,3 +22,6 @@ build/
 *.xcuserstate
 
 **/supabase/.temp/
+
+# Local Git worktrees for version-isolated native V7 builds.
+.worktrees/
