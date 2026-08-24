@@ -7,10 +7,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { FilesetResolver, PoseLandmarker } from './web/vision_bundle.mjs';
+import {
+  pwaCameraError,
+  pwaCameraErrorDetail,
+  waitForVideoReady,
+} from './PwaCameraSupport.web.js';
 
 const WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
 const POSE_MODEL_CDN = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
-const MAX_DETECTION_HZ = 15;
+const PWA_POSE_DETECTION_HZ = 10;
 
 const finite = (value) => Number.isFinite(Number(value));
 
@@ -29,7 +34,7 @@ function mapPoint(point, width, height, video) {
   };
 }
 
-export default function SitToStandCamera({ style, message, onLandmarks, onCameraStatus }) {
+export default function SitToStandCamera({ style, message, onLandmarks, onCameraStatus, initialStream = null }) {
   const [layout, setLayout] = useState({ width: 0, height: 0 });
   const [status, setStatus] = useState('starting');
   const [error, setError] = useState(null);
@@ -48,7 +53,7 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
   useEffect(() => {
     if (status === 'ready') onCameraStatus?.('ready');
     else if (status === 'error' || status === 'runtime_error') {
-      onCameraStatus?.('runtime-error', error?.message || 'Sit-to-Stand camera failed');
+      onCameraStatus?.('runtime-error', pwaCameraErrorDetail(error));
     } else if (status === 'requesting_camera') onCameraStatus?.('permission');
     else onCameraStatus?.('loading');
   }, [error, onCameraStatus, status]);
@@ -64,14 +69,10 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
         const video = videoRef.current;
         if (!video) throw new Error('Mac camera video element is unavailable');
         setStatus('requesting_camera');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user',
-          },
-          audio: false,
-        });
+        const stream = initialStream;
+        if (!stream?.getVideoTracks?.().length) {
+          throw pwaCameraError('camera_handoff', new Error('camera stream was not started by the patient action'));
+        }
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
@@ -82,21 +83,27 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
         video.srcObject = stream;
         video.muted = true;
         video.playsInline = true;
-        await new Promise((resolve) => {
-          if (video.readyState >= 2) resolve();
-          else video.addEventListener('loadeddata', resolve, { once: true });
-        });
-        await video.play();
+        await waitForVideoReady(video);
+        try {
+          await video.play();
+        } catch (playError) {
+          throw pwaCameraError('video_playback', playError);
+        }
         setStatus('loading_model');
-        const fileset = await FilesetResolver.forVisionTasks(WASM_CDN);
-        const pose = await PoseLandmarker.createFromOptions(fileset, {
-          baseOptions: { modelAssetPath: POSE_MODEL_CDN, delegate: 'CPU' },
-          runningMode: 'VIDEO',
-          numPoses: 1,
-          minPoseDetectionConfidence: 0.5,
-          minPosePresenceConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
+        let pose;
+        try {
+          const fileset = await FilesetResolver.forVisionTasks(WASM_CDN);
+          pose = await PoseLandmarker.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: POSE_MODEL_CDN, delegate: 'CPU' },
+            runningMode: 'VIDEO',
+            numPoses: 1,
+            minPoseDetectionConfidence: 0.5,
+            minPosePresenceConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+          });
+        } catch (poseError) {
+          throw pwaCameraError('pose_initialization', poseError);
+        }
         if (cancelled) {
           pose.close();
           return;
@@ -107,7 +114,7 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
         const tick = (now) => {
           if (cancelled) return;
           frameRef.current = requestAnimationFrame(tick);
-          if (now - lastDetectionRef.current < 1000 / MAX_DETECTION_HZ) return;
+          if (now - lastDetectionRef.current < 1000 / PWA_POSE_DETECTION_HZ) return;
           if (!video.videoWidth || !video.videoHeight || !poseRef.current) return;
           lastDetectionRef.current = now;
           try {
@@ -115,7 +122,12 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
             // front, unmirrored source only; source replacement resets the
             // temporal feature extractor through sourceGeneration.
             const timestampMs = Math.round(now);
-            const poseResult = poseRef.current.detectForVideo(video, timestampMs);
+            let poseResult;
+            try {
+              poseResult = poseRef.current.detectForVideo(video, timestampMs);
+            } catch (poseError) {
+              throw pwaCameraError('pose_inference', poseError);
+            }
             const landmarks = poseResult?.landmarks?.[0] || null;
             const points = landmarks && layoutRef.current.width > 0 && layoutRef.current.height > 0
               ? landmarks.map((point) => mapPoint(point, layoutRef.current.width, layoutRef.current.height, video))
@@ -130,7 +142,7 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
             });
           } catch (detectError) {
             if (!cancelled) {
-              setError(detectError);
+              setError(detectError?.stage ? detectError : pwaCameraError('pose_inference', detectError));
               setStatus('runtime_error');
             }
           }
@@ -154,12 +166,12 @@ export default function SitToStandCamera({ style, message, onLandmarks, onCamera
       streamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, []);
+  }, [initialStream]);
 
   const statusText = error
     ? `${message || 'Camera unavailable'} (${error.message || error})`
     : status === 'ready'
-      ? `MacBook camera · Sit-to-Stand PWA · Pose ${poseCount}/33 · Pose-only`
+      ? `PWA camera · Sit-to-Stand · Pose ${poseCount}/33 · Pose-only`
       : status === 'requesting_camera'
         ? 'Allow camera access to continue'
         : status === 'loading_model'

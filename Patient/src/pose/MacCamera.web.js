@@ -16,12 +16,23 @@ import {
   normalizeBottleDetections,
   selectBottleDetection,
 } from '../ai/bottleGrab/v7/BottleDetectionV7.js';
+import {
+  loadPwaModelAssetBuffer,
+  pwaCameraError,
+  pwaCameraErrorDetail,
+  waitForVideoReady,
+} from './PwaCameraSupport.web.js';
 
 const WASM_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
 const POSE_MODEL_CDN = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
 const HAND_MODEL_CDN = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 const BOTTLE_MODEL_ASSET = require('../../assets/models/efficientdet_lite0.tflite');
-const MAX_DETECTION_HZ = 15;
+// iPhone standalone PWAs are CPU/WASM constrained. Keep full-body Pose at a
+// usable 10 Hz, while Bottle and optional Hand run independently at 4 Hz so a
+// secondary task cannot starve or terminate the required Pose stream.
+const PWA_POSE_DETECTION_HZ = 10;
+const PWA_BOTTLE_DETECTION_HZ = 4;
+const PWA_HAND_DETECTION_HZ = 4;
 
 function finite(value) {
   return Number.isFinite(Number(value));
@@ -73,7 +84,7 @@ function chooseLeftHand(handResult) {
   };
 }
 
-export default function MacCamera({ style, message, onLandmarks, onCameraStatus }) {
+export default function MacCamera({ style, message, onLandmarks, onCameraStatus, initialStream = null }) {
   const [layout, setLayout] = useState({ width: 0, height: 0 });
   const [status, setStatus] = useState('starting');
   const [error, setError] = useState(null);
@@ -88,16 +99,25 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
   const onLandmarksRef = useRef(onLandmarks);
   const streamRef = useRef(null);
   const frameRef = useRef(null);
-  const lastDetectionRef = useRef(0);
+  const lastPoseDetectionRef = useRef(0);
+  const lastBottleDetectionRef = useRef(0);
+  const lastHandDetectionRef = useRef(0);
   const sourceGenerationRef = useRef(0);
   const previousBottleRef = useRef(null);
+  const latestBottleRef = useRef({
+    detections: [],
+    selection: { detection: null, reason: 'bottle_waiting', candidateCount: 0 },
+  });
+  const latestHandRef = useRef(null);
+  const bottleIssueRef = useRef(null);
+  const handIssueRef = useRef(null);
   layoutRef.current = layout;
   onLandmarksRef.current = onLandmarks;
 
   useEffect(() => {
     if (status === 'ready') onCameraStatus?.('ready');
     else if (status === 'error' || status === 'runtime_error') {
-      onCameraStatus?.('runtime-error', error?.message || 'MacBook camera failed');
+      onCameraStatus?.('runtime-error', pwaCameraErrorDetail(error));
     } else if (status === 'requesting_camera') onCameraStatus?.('permission');
     else onCameraStatus?.('loading');
   }, [error, onCameraStatus, status]);
@@ -113,14 +133,10 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
         const video = videoRef.current;
         if (!video) throw new Error('Mac camera video element is unavailable');
         setStatus('requesting_camera');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user',
-          },
-          audio: false,
-        });
+        const stream = initialStream;
+        if (!stream?.getVideoTracks?.().length) {
+          throw pwaCameraError('camera_handoff', new Error('camera stream was not started by the patient action'));
+        }
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
@@ -128,38 +144,66 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
         const sourceGeneration = sourceGenerationRef.current + 1;
         sourceGenerationRef.current = sourceGeneration;
         previousBottleRef.current = null;
+        latestBottleRef.current = {
+          detections: [],
+          selection: { detection: null, reason: 'bottle_waiting', candidateCount: 0 },
+        };
+        latestHandRef.current = null;
+        bottleIssueRef.current = null;
+        handIssueRef.current = null;
+        lastPoseDetectionRef.current = 0;
+        lastBottleDetectionRef.current = 0;
+        lastHandDetectionRef.current = 0;
         setBottleStatus('bottle_missing');
         setBottleRoi(null);
         streamRef.current = stream;
         video.srcObject = stream;
         video.muted = true;
         video.playsInline = true;
-        await new Promise((resolve) => {
-          if (video.readyState >= 2) resolve();
-          else video.addEventListener('loadeddata', resolve, { once: true });
-        });
-        await video.play();
+        await waitForVideoReady(video);
+        try {
+          await video.play();
+        } catch (playError) {
+          throw pwaCameraError('video_playback', playError);
+        }
         setStatus('loading_model');
         const fileset = await FilesetResolver.forVisionTasks(WASM_CDN);
-        const resolvedBottleModel = Image.resolveAssetSource(BOTTLE_MODEL_ASSET);
-        if (!resolvedBottleModel?.uri) throw new Error('V7 bottle detector asset URI is unavailable');
-        const [pose, objectDetector] = await Promise.all([
-          PoseLandmarker.createFromOptions(fileset, {
+        let pose;
+        try {
+          pose = await PoseLandmarker.createFromOptions(fileset, {
             baseOptions: { modelAssetPath: POSE_MODEL_CDN, delegate: 'CPU' },
             runningMode: 'VIDEO',
             numPoses: 1,
             minPoseDetectionConfidence: 0.5,
             minPosePresenceConfidence: 0.5,
             minTrackingConfidence: 0.5,
-          }),
-          ObjectDetector.createFromOptions(fileset, {
-            baseOptions: { modelAssetPath: resolvedBottleModel.uri, delegate: 'CPU' },
+          });
+        } catch (poseError) {
+          throw pwaCameraError('pose_initialization', poseError);
+        }
+        if (cancelled) {
+          pose.close();
+          return;
+        }
+        poseRef.current = pose;
+
+        // The Bottle detector is independent from the full-body Pose contract.
+        // Its local PWA asset is loaded into an explicit buffer so WebKit does
+        // not need to resolve a React Native Web asset URL inside MediaPipe.
+        let objectDetector = null;
+        try {
+          const resolvedBottleModel = Image.resolveAssetSource(BOTTLE_MODEL_ASSET);
+          const bottleModelBuffer = await loadPwaModelAssetBuffer(resolvedBottleModel?.uri, 'Bottle detector');
+          objectDetector = await ObjectDetector.createFromOptions(fileset, {
+            baseOptions: { modelAssetBuffer: bottleModelBuffer, delegate: 'CPU' },
             runningMode: 'VIDEO',
             maxResults: 5,
             scoreThreshold: 0.35,
             categoryAllowlist: ['bottle'],
-          }),
-        ]);
+          });
+        } catch (detectorError) {
+          bottleIssueRef.current = pwaCameraError('bottle_initialization', detectorError);
+        }
         let hand = null;
         try {
           hand = await HandLandmarker.createFromOptions(fileset, {
@@ -174,14 +218,14 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
           // V7 count does not require Hand; retain the Pose+bottle path and
           // surface finger-quality as unavailable in the session output.
           console.warn('PhysioAI optional Hand Landmarker unavailable', handError);
+          handIssueRef.current = pwaCameraError('hand_initialization', handError);
         }
         if (cancelled) {
-          pose.close();
+          poseRef.current?.close();
           hand?.close();
-          objectDetector.close();
+          objectDetector?.close();
           return;
         }
-        poseRef.current = pose;
         handRef.current = hand;
         bottleDetectorRef.current = objectDetector;
         setStatus('ready');
@@ -189,39 +233,79 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
         const tick = (now) => {
           if (cancelled) return;
           frameRef.current = requestAnimationFrame(tick);
-          if (now - lastDetectionRef.current < 1000 / MAX_DETECTION_HZ) return;
-          if (!video.videoWidth || !video.videoHeight || !poseRef.current || !bottleDetectorRef.current) return;
-          lastDetectionRef.current = now;
+          if (now - lastPoseDetectionRef.current < 1000 / PWA_POSE_DETECTION_HZ) return;
+          if (!video.videoWidth || !video.videoHeight || !poseRef.current) return;
+          lastPoseDetectionRef.current = now;
           try {
             // The video is deliberately not CSS-mirrored. V7 retains the
             // Baseline #4/nativeUnmirrored contract so anatomical Left
             // remains auditable across Pose, Hand, and detector outputs.
             const timestampMs = Math.round(now);
-            const poseResult = poseRef.current.detectForVideo(video, timestampMs);
-            const bottleResult = bottleDetectorRef.current.detectForVideo(video, timestampMs);
-            const handResult = handRef.current?.detectForVideo(video, timestampMs) || null;
+            let poseResult;
+            try {
+              poseResult = poseRef.current.detectForVideo(video, timestampMs);
+            } catch (poseError) {
+              throw pwaCameraError('pose_inference', poseError);
+            }
+
+            let selectedHand = latestHandRef.current;
+            if (handRef.current && now - lastHandDetectionRef.current >= 1000 / PWA_HAND_DETECTION_HZ) {
+              lastHandDetectionRef.current = now;
+              try {
+                selectedHand = chooseLeftHand(handRef.current.detectForVideo(video, timestampMs));
+                latestHandRef.current = selectedHand;
+              } catch (handError) {
+                handIssueRef.current = pwaCameraError('hand_inference', handError);
+                try { handRef.current?.close(); } catch {}
+                handRef.current = null;
+                latestHandRef.current = null;
+                selectedHand = null;
+              }
+            }
+
+            if (bottleDetectorRef.current && now - lastBottleDetectionRef.current >= 1000 / PWA_BOTTLE_DETECTION_HZ) {
+              lastBottleDetectionRef.current = now;
+              try {
+                const bottleResult = bottleDetectorRef.current.detectForVideo(video, timestampMs);
+                const bottleCandidates = normalizeBottleDetections(bottleResult, {
+                  sourceGeneration,
+                  timestampMs,
+                  imageWidth: video.videoWidth,
+                  imageHeight: video.videoHeight,
+                });
+                const bottleSelection = selectBottleDetection({
+                  detections: bottleCandidates,
+                  sourceGeneration,
+                  timestampMs,
+                  previous: previousBottleRef.current,
+                });
+                if (bottleSelection.detection) previousBottleRef.current = bottleSelection.detection;
+                latestBottleRef.current = { detections: bottleCandidates, selection: bottleSelection };
+              } catch (detectorError) {
+                bottleIssueRef.current = pwaCameraError('bottle_inference', detectorError);
+                try { bottleDetectorRef.current?.close(); } catch {}
+                bottleDetectorRef.current = null;
+                latestBottleRef.current = {
+                  detections: [],
+                  selection: { detection: null, reason: 'bottle_detector_error', candidateCount: 0 },
+                };
+              }
+            }
+
             const landmarks = poseResult?.landmarks?.[0] || null;
-            const selectedHand = chooseLeftHand(handResult);
-            const bottleCandidates = normalizeBottleDetections(bottleResult, {
-              sourceGeneration,
-              timestampMs,
-              imageWidth: video.videoWidth,
-              imageHeight: video.videoHeight,
-            });
-            const bottleSelection = selectBottleDetection({
-              detections: bottleCandidates,
-              sourceGeneration,
-              timestampMs,
-              previous: previousBottleRef.current,
-            });
-            if (bottleSelection.detection) previousBottleRef.current = bottleSelection.detection;
+            const bottleCandidates = latestBottleRef.current.detections;
+            const bottleSelection = latestBottleRef.current.selection;
+            const detectorState = bottleIssueRef.current ? 'error' : (bottleDetectorRef.current ? 'ready' : 'waiting');
             const bottleDiagnostics = {
-              detectorState: 'ready',
+              detectorState,
+              detectorError: bottleIssueRef.current ? pwaCameraErrorDetail(bottleIssueRef.current) : null,
               detections: bottleCandidates,
               selection: bottleSelection,
             };
             setBottleStatus((previous) => {
-              const next = bottleSelection.detection ? 'bottle_detected' : bottleSelection.reason;
+              const next = bottleIssueRef.current
+                ? 'bottle_detector_error'
+                : (bottleSelection.detection ? 'bottle_detected' : bottleSelection.reason);
               return previous === next ? previous : next;
             });
             setBottleRoi((previous) => {
@@ -271,7 +355,7 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
             });
           } catch (detectError) {
             if (!cancelled) {
-              setError(detectError);
+              setError(detectError?.stage ? detectError : pwaCameraError('pose_inference', detectError));
               setStatus('runtime_error');
             }
           }
@@ -296,17 +380,21 @@ export default function MacCamera({ style, message, onLandmarks, onCameraStatus 
       handRef.current = null;
       bottleDetectorRef.current = null;
       previousBottleRef.current = null;
+      latestBottleRef.current = { detections: [], selection: { detection: null, reason: 'bottle_waiting', candidateCount: 0 } };
+      latestHandRef.current = null;
+      bottleIssueRef.current = null;
+      handIssueRef.current = null;
       setBottleRoi(null);
       streamRef.current?.getTracks?.().forEach((track) => track.stop());
       streamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, []);
+  }, [initialStream]);
 
   const statusText = error
     ? `${message || 'Camera unavailable'} (${error.message || error})`
     : status === 'ready'
-      ? `MacBook camera · App V7.3.3 · Pose ${detectionCounts.pose}/33 · Hand ${detectionCounts.hand}/21${detectionCounts.side ? ` · ${detectionCounts.side}` : ''} · Bottle ${bottleStatus}`
+      ? `PWA camera · App V7.3.3 · Pose ${detectionCounts.pose}/33 · Hand ${detectionCounts.hand}/21${detectionCounts.side ? ` · ${detectionCounts.side}` : ''} · Bottle ${bottleStatus}`
       : status === 'requesting_camera'
         ? 'Allow camera access to continue'
       : status === 'loading_model'

@@ -121,6 +121,10 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
   res.setHeader('Vary', 'Origin, Access-Control-Request-Headers');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
+  // The standalone PWA lives on this top-level HTTPS origin. Declare that
+  // camera access is allowed only for this origin, rather than relying on the
+  // browser's default Permissions Policy interpretation.
+  res.setHeader('Permissions-Policy', 'camera=(self)');
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; img-src 'self' data: blob: https: *; style-src 'self' 'unsafe-inline' https: *; " +

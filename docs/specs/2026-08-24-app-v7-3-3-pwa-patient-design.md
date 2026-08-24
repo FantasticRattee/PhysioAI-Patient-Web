@@ -127,6 +127,30 @@ a deployed browser build `API_BASE` uses an explicit
 `EXPO_PUBLIC_API_BASE` when one is baked in, otherwise it uses the same
 serving origin. Camera frames and inference remain local to the browser.
 
+## iPhone Home Screen PWA camera reliability patch
+
+The iPhone PWA uses a two-stage camera handoff:
+
+```text
+Patient taps Open camera
+  -> requestWebCameraStream() in that user action
+  -> Session receives that MediaStream
+  -> required Pose Full at 10 Hz
+  -> independent Bottle Detector at 4 Hz
+  -> independent optional Hand at 4 Hz
+```
+
+`Pose Full` remains required because the Bottle Grab pipeline preserves
+full-body landmarks for shoulder-related evidence. The Bottle Detector and
+Hand paths are isolated: a failure is forwarded as explicit diagnostic status
+and cannot terminate the Pose stream. The local Bottle TFLite asset is fetched
+into `modelAssetBuffer` before detector creation so MediaPipe does not need to
+resolve a React Native Web asset URL inside WebKit. The user-facing failure
+card now retains a small stage identifier (for example `pose_inference` or
+`bottle_inference`) in the experimental PWA. This is a transport/reliability
+patch only; it does not alter detector thresholds, Pose-proximity count
+authority, Baseline #4 cue rules, PhaseNet context, scores, or clinical scope.
+
 ## Test and verification gates
 
 Before handoff, run:

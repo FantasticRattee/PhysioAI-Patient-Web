@@ -43,6 +43,7 @@ describe('Bottle Grab camera runtime wiring', () => {
 
   test('web Bottle Grab uses the MacBook camera and Baseline #4 adapter', () => {
     const camera = source('Patient', 'src', 'pose', 'MacCamera.web.js');
+    const support = source('Patient', 'src', 'pose', 'PwaCameraSupport.web.js');
     const practice = source('Patient', 'src', 'screens', 'PracticeScreen.js');
     const hook = source('Patient', 'src', 'pose', 'usePractice.js');
     const contract = JSON.parse(source(
@@ -50,7 +51,7 @@ describe('Bottle Grab camera runtime wiring', () => {
       'rule_wrap_hybrid_device_preview.contract.json',
     ));
 
-    expect(camera).toContain('navigator.mediaDevices.getUserMedia');
+    expect(support).toContain('nav.mediaDevices.getUserMedia');
     expect(camera).toContain('HandLandmarker');
     expect(camera).toContain('ObjectDetector');
     expect(camera).toContain('efficientdet_lite0.tflite');
@@ -146,6 +147,23 @@ describe('Bottle Grab camera runtime wiring', () => {
     expect(presenter).toContain("onCameraStatus?.('permission')");
     expect(screen).toContain("cameraStatus.kind === 'ready'");
     expect(screen).toContain('cameraFailureLayer');
-    expect(screen).toContain("cameraStatus.kind !== 'permission'");
+    expect(screen).toContain("cameraBlocked ? (");
+    expect(screen).toContain('Waiting for camera permission');
+  });
+
+  test('iPhone PWA hands a user-started stream to a resilient staged camera pipeline', () => {
+    const supportPath = path.join(appRoot, 'Patient', 'src', 'pose', 'PwaCameraSupport.web.js');
+    const camera = source('Patient', 'src', 'pose', 'MacCamera.web.js');
+    const screen = source('Patient', 'src', 'screens', 'PracticeScreen.js');
+
+    expect(fs.existsSync(supportPath)).toBe(true);
+    expect(camera).toContain('initialStream');
+    expect(camera).toContain('PWA_BOTTLE_DETECTION_HZ');
+    expect(camera).toContain("'pose_inference'");
+    expect(camera).toContain("'bottle_inference'");
+    expect(camera).toContain('modelAssetBuffer');
+    expect(screen).toContain('requestWebCameraStream');
+    expect(screen).toContain('initialWebStream');
+    expect(screen).toContain('status.detail');
   });
 });

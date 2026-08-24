@@ -34,6 +34,7 @@ describe('Patient PWA static hosting', () => {
     expect(manifest.text).toContain('PhysioAI Patient PWA V7.3.3');
     expect(health.status).toBe(200);
     expect(health.body.status).toBe('ok');
+    expect(health.headers['permissions-policy']).toContain('camera=(self)');
   });
 
   test('declares a Node version compatible with the Expo web export', () => {

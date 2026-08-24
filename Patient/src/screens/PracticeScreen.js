@@ -38,6 +38,7 @@ let CachedPoseCamera = null;
 let CachedBottleGrabCamera = null;
 let CachedMacCamera = null;
 let CachedSitToStandCamera = null;
+let CachedPwaCameraSupport = null;
 
 function CameraUnavailable({ style, message }) {
   return (
@@ -96,6 +97,18 @@ function loadCameraComponent(exerciseId) {
   }
 }
 
+function loadPwaCameraSupport() {
+  if (Platform.OS !== 'web') return null;
+  if (!CachedPwaCameraSupport) {
+    CachedPwaCameraSupport = require('../pose/PwaCameraSupport.web.js');
+  }
+  return CachedPwaCameraSupport;
+}
+
+function stopWebCameraStream(stream) {
+  try { stream?.getTracks?.().forEach((track) => track.stop()); } catch {}
+}
+
 export default function PracticeScreen({ route, navigation }) {
   const exId = route.params?.exId || 'shoulder';
   const dose = route.params?.dose;            // prescribed reps/sets/holdSec (plan); undefined = defaults
@@ -105,22 +118,78 @@ export default function PracticeScreen({ route, navigation }) {
   const [mode, setMode] = useState(null); // null = ready, else 'live' | 'demo'
   const [presentationMode, setPresentationMode] = useState(PRESENTATION_MODE.STANDARD);
   const [runKey, setRunKey] = useState(0);
+  const [webCameraStream, setWebCameraStream] = useState(null);
+  const [webCameraError, setWebCameraError] = useState(null);
+  const webCameraStreamRef = useRef(null);
+
+  const requestWebCameraStream = useCallback(async () => {
+    if (Platform.OS !== 'web') return null;
+    const support = loadPwaCameraSupport();
+    try {
+      // Call this from the actual patient tap. iOS standalone PWAs retain that
+      // user activation more reliably than an effect after navigation.
+      const stream = await support.requestWebCameraStream();
+      const previous = webCameraStreamRef.current;
+      if (previous && previous !== stream) stopWebCameraStream(previous);
+      webCameraStreamRef.current = stream;
+      setWebCameraStream(stream);
+      setWebCameraError(null);
+      return stream;
+    } catch (error) {
+      const detail = support?.pwaCameraErrorDetail?.(error) || String(error?.message || error || 'camera_request_failed');
+      setWebCameraError(detail);
+      throw error;
+    }
+  }, []);
+
+  const startPractice = useCallback(async (selectedMode) => {
+    if (selectedMode === 'live' && Platform.OS === 'web') {
+      try {
+        await requestWebCameraStream();
+      } catch {
+        return;
+      }
+    }
+    setWebCameraError(null);
+    setMode(selectedMode);
+  }, [requestWebCameraStream]);
+
+  const exitPractice = useCallback(() => {
+    stopWebCameraStream(webCameraStreamRef.current);
+    webCameraStreamRef.current = null;
+    setWebCameraStream(null);
+    navigation.goBack();
+  }, [navigation]);
+
+  const againPractice = useCallback(async () => {
+    if (mode === 'live' && Platform.OS === 'web') {
+      try {
+        await requestWebCameraStream();
+      } catch {
+        setMode(null);
+        return;
+      }
+    }
+    setRunKey((key) => key + 1);
+  }, [mode, requestWebCameraStream]);
 
   if (!mode) {
     return <ReadyView
       exId={exId} dose={dose} exercise={exercise}
       presentationMode={presentationMode} onPresentationModeChange={setPresentationMode}
-      onStart={(m) => setMode(m)} onBack={() => navigation.goBack()}
+      cameraError={webCameraError}
+      onStart={startPractice} onBack={() => navigation.goBack()}
     />;
   }
   return <SessionView
     key={runKey} exId={exId} mode={mode} presentationMode={presentationMode}
     dose={dose} kind={kind} exercise={exercise} patientId={patientId}
-    onAgain={() => setRunKey((k) => k + 1)} onExit={() => navigation.goBack()}
+    initialWebStream={webCameraStream} onRequestWebCamera={requestWebCameraStream}
+    onAgain={againPractice} onExit={exitPractice}
   />;
 }
 
-function ReadyView({ exId, dose, exercise, presentationMode, onPresentationModeChange, onStart, onBack }) {
+function ReadyView({ exId, dose, exercise, presentationMode, onPresentationModeChange, onStart, onBack, cameraError }) {
   const ex = getExercise(exId, [exercise]);
   const experimentalBottle = ex.id === 'bottle_grab';
   const experimentalSitToStand = ex.id === 'sit_to_stand';
@@ -166,7 +235,8 @@ function ReadyView({ exId, dose, exercise, presentationMode, onPresentationModeC
 
         <View style={{ flex: 1 }} />
         <Text style={styles.permHint}>{t('permissionHint')}</Text>
-        <Pressable style={[styles.btn, styles.btnPrimary]} onPress={() => onStart('live')}>
+        {cameraError ? <Text style={styles.readyCameraError}>{cameraError}</Text> : null}
+        <Pressable style={[styles.btn, styles.btnPrimary]} onPress={() => { void onStart('live'); }}>
           <Text style={styles.btnPrimaryTxt}>{t('startCamera')}</Text>
         </Pressable>
         {showDemo ? (
@@ -192,7 +262,7 @@ function ModeChoice({ mode, selected, title, hint, onPress }) {
   );
 }
 
-function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patientId, onAgain, onExit }) {
+function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patientId, initialWebStream, onRequestWebCamera, onAgain, onExit }) {
   const { snapshot: s, summary, ready, phase, countdown, onPoseResult, resetCameraSource } = usePractice({
     exId, mode, dose, kind, exercise, patientId, presentationMode,
   });
@@ -209,6 +279,7 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
     mode === 'live' ? { kind: 'loading', detail: '' } : { kind: 'idle', detail: '' }
   ));
   const [cameraRetryKey, setCameraRetryKey] = useState(0);
+  const [webStream, setWebStream] = useState(initialWebStream);
   const boundaryFrame = useRef(null);
   const therapistCueTimer = useRef(null);
   const voiceEnabledRef = useRef(shouldSpeak(presentationMode, true));
@@ -249,6 +320,10 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
   const cameraReady = mode !== 'live' || cameraStatus.kind === 'ready';
   const cameraBlocked = mode === 'live' && !cameraReady;
 
+  useEffect(() => {
+    setWebStream(initialWebStream || null);
+  }, [initialWebStream]);
+
   const handleCameraCapabilities = useCallback((capabilities) => {
     setCameraCapabilities((previous) => (
       cameraCapabilityKey(previous) === cameraCapabilityKey(capabilities) ? previous : capabilities
@@ -276,12 +351,22 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
     ));
   }, []);
 
-  const retryCamera = useCallback(() => {
+  const retryCamera = useCallback(async () => {
     resetCameraSource('camera_retry');
     setCameraCapabilities(null);
     setCameraStatus({ kind: 'loading', detail: '' });
+    if (Platform.OS === 'web') {
+      try {
+        const nextStream = await onRequestWebCamera?.();
+        if (!nextStream) throw new Error('camera stream was not returned from the patient action');
+        setWebStream(nextStream);
+      } catch (error) {
+        setCameraStatus({ kind: 'runtime-error', detail: String(error?.message || error || 'camera_retry_failed') });
+        return;
+      }
+    }
     setCameraRetryKey((key) => key + 1);
-  }, [resetCameraSource]);
+  }, [onRequestWebCamera, resetCameraSource]);
 
   const selectCameraLens = useCallback((lensId) => {
     setCameraLensByPosition((previous) => ({ ...previous, [cameraPosition]: lensId }));
@@ -401,10 +486,10 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
   const CameraComponent = mode === 'live' ? loadCameraComponent(ex.id) : null;
   const cameraErrorText = lang === 'th'
     ? (Platform.OS === 'web'
-      ? 'อนุญาตกล้อง MacBook ในเบราว์เซอร์ แล้วลองใหม่'
+      ? 'อนุญาตกล้องใน Safari หรือแอป Home Screen แล้วลองใหม่'
       : 'เปิดกล้องไม่ได้ใน build นี้ — ใช้โหมดสาธิตหรือ rebuild dev client ใหม่')
     : (Platform.OS === 'web'
-      ? 'Allow MacBook camera access in the browser, then try again'
+      ? 'Allow camera access in Safari or the Home Screen app, then try again'
       : 'Camera is unavailable in this build — use Demo mode or rebuild the dev client');
 
   return (
@@ -418,6 +503,7 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
           cameraLens={cameraLens}
           onCameraCapabilities={handleCameraCapabilities}
           onCameraStatus={handleCameraStatus}
+          initialStream={Platform.OS === 'web' ? webStream : null}
           onLandmarks={(lm, viewPts, handFrame, handViewPts, bottleDetection, sourceGeneration, bottleDiagnostics, frameMeta) => {
             setLivePts(viewPts);
             setLiveHandPts(handViewPts || null);
@@ -432,6 +518,7 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
           style={StyleSheet.absoluteFill}
           message={cameraErrorText}
           onCameraStatus={handleCameraStatus}
+          initialStream={Platform.OS === 'web' ? webStream : null}
           onLandmarks={(lm, viewPts, frameMeta) => {
             setLivePts(viewPts);
             setLiveHandPts(null);
@@ -457,6 +544,7 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
           cameraLens={cameraLens}
           onCameraCapabilities={handleCameraCapabilities}
           onCameraStatus={handleCameraStatus}
+          initialStream={Platform.OS === 'web' ? webStream : null}
           onLandmarks={(lm, viewPts) => {
             setLivePts(viewPts);   // view-pixel points from the camera ViewCoordinator
             const nextBoundary = viewPts && size.w > 0 && size.h > 0
@@ -518,9 +606,9 @@ function SessionView({ exId, mode, presentationMode, dose, kind, exercise, patie
         </View>
       ) : null}
 
-      {cameraBlocked && cameraStatus.kind !== 'permission' ? (
+      {cameraBlocked ? (
         <CameraFailureHud status={cameraStatus} onRetry={retryCamera} onExit={onExit} />
-      ) : cameraBlocked ? null : isAudio ? (
+      ) : isAudio ? (
         <AudioOnlyHud ex={ex} phase={phase} countdown={countdown} cueText={cueText} cueTone={cueTone} therapistCue={activeTherapistCue} onExit={onExit} />
       ) : isVisual ? (
         <VisualOnlyHud
@@ -622,6 +710,10 @@ function CameraFailureHud({ status, onRetry, onExit }) {
       title: lang === 'th' ? 'กำลังเปิดกล้อง' : 'Starting camera',
       body: lang === 'th' ? 'กำลังเชื่อมต่อกล้องและตัวตรวจจับ กรุณารอสักครู่' : 'Connecting the camera and pose detector. Please wait a moment.',
     },
+    permission: {
+      title: lang === 'th' ? 'รอสิทธิ์การใช้กล้อง' : 'Waiting for camera permission',
+      body: lang === 'th' ? 'ยืนยันสิทธิ์กล้องจาก iPhone แล้วระบบจะเริ่มต่อเอง' : 'Confirm camera permission on the iPhone and the session will continue.',
+    },
     unavailable: {
       title: lang === 'th' ? 'ไม่พบกล้องที่ใช้ได้' : 'Camera is unavailable',
       body: lang === 'th' ? 'ตรวจสอบสิทธิ์กล้อง แล้วลองเปิดกล้องใหม่อีกครั้ง' : 'Check camera permission, then try opening the camera again.',
@@ -644,7 +736,7 @@ function CameraFailureHud({ status, onRetry, onExit }) {
       <View style={styles.cameraFailureCard}>
         <Text style={styles.cameraFailureTitle}>{copy.title}</Text>
         <Text style={styles.cameraFailureBody}>{copy.body}</Text>
-        {__DEV__ && status.detail ? <Text style={styles.cameraFailureDetail}>{status.detail}</Text> : null}
+        {(Platform.OS === 'web' || __DEV__) && status.detail ? <Text style={styles.cameraFailureDetail}>{status.detail}</Text> : null}
         <Pressable style={[styles.btn, styles.btnPrimary, styles.cameraFailureButton]} onPress={onRetry}>
           <Text style={styles.btnPrimaryTxt}>{lang === 'th' ? '↻ ลองเปิดใหม่' : '↻ Retry camera'}</Text>
         </Pressable>
@@ -895,6 +987,7 @@ const styles = StyleSheet.create({
   modeChoiceHint: { color: colors.ink2, fontSize: 10.5, lineHeight: 14, marginTop: 5 },
   modeChoiceHintSelected: { color: 'rgba(245,241,232,0.76)' },
   permHint: { color: colors.ink2, fontSize: 12.5, lineHeight: 18, textAlign: 'center', marginBottom: 12 },
+  readyCameraError: { color: '#B3433A', fontSize: 12, lineHeight: 18, textAlign: 'center', marginBottom: 10, paddingHorizontal: 12 },
   btn: { minHeight: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
   btnPrimary: { backgroundColor: colors.brand },
   btnPrimaryTxt: { color: colors.inverse, fontWeight: '800', fontSize: 16 },
