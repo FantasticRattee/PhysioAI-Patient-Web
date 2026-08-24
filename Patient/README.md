@@ -200,6 +200,22 @@ wide previews. Add to Home Screen requires HTTPS in deployment. This is not offl
 bundle/WASM/task assets and cloud auth/API metadata still need network delivery, while camera frames
 and inference remain local. See [the Patient Web/PWA navigation design](../docs/specs/2026-08-20-patient-web-pwa-navigation-design.md).
 
+### V7.3.3 PWA release build
+
+```bash
+cd Patient
+npm install
+npm run export:web
+```
+
+The export is `Patient/dist`. The approved Railway branch builds that directory
+at the repository root and serves it at `/`; `/therapist/...` remains the
+separate Therapist console. Do not commit `dist/`, `.env`, or
+`vendor/react-native-mediapipe/node_modules/`. In production the browser uses
+an explicit `EXPO_PUBLIC_API_BASE` if one was baked into the bundle; otherwise
+it calls the same Railway origin. This is hosting integration, not a claim of
+camera/model validation.
+
 ## Live pose native build and manual verification
 `src/pose/PoseCamera.js` targets `react-native-mediapipe ~0.5.x`. If your installed version's
 API differs, adjust the two marked spots (the `usePoseDetection` call and `normalizeResults`) —

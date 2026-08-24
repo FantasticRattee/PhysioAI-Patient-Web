@@ -18,6 +18,7 @@ import { recognizeExercise } from '../ai/ExerciseRecognition.js';
 import { makePose } from '../ai/SyntheticPose.js';
 import { EXERCISES, romRange } from './exercises.js';
 import { buildMotionConfig, evaluateMultiJointMotionFrame } from '../ai/MultiJointMotion.js';
+import { hasModel as nnHasModel, classifyForm as nnClassify } from '../ai/NNExerciseClassifier.js';
 
 // Resolve the effective exercise for a run. Two sources, by concern:
 //  • Quality target (tol, targetAngle) comes from the captured reference.
@@ -196,7 +197,14 @@ function createCounter(ex, { onRep, onSet, onDone }) {
 }
 
 export function createSession(opts) {
-  const { reference, allRefs = {}, patientId = 'p1', onEvent } = opts;
+  const {
+    reference,
+    allRefs = {},
+    patientId = 'p1',
+    onEvent,
+    bottlePhaseTracker = null,
+    sitToStandTracker = null,
+  } = opts;
   let lang = opts.lang || 'th';
   const source = opts.source || 'live';
   const kind = opts.kind || 'plan'; // 'plan' (counts toward adherence) | 'extra'
@@ -214,8 +222,14 @@ export function createSession(opts) {
   }
 
   let stats, counter, elapsed, lastRecog, lastRecogAt, snapshot;
+  let experimentalRepCount = 0;
 
   function init() {
+    bottlePhaseTracker?.reset('session_reset');
+    if (sitToStandTracker?.reset) sitToStandTracker.reset('session_reset');
+    else sitToStandTracker?.resetForNewCaptureSource?.('session_reset');
+    sitToStandTracker?.setCountingEnabled?.(false);
+    experimentalRepCount = 0;
     stats = {
       scoreSum: 0, scoreN: 0,
       poseScoreSum: 0, poseScoreN: 0,
@@ -319,9 +333,115 @@ export function createSession(opts) {
       : Math.round(poseScore * 0.6 + (motion?.motionScore ?? 100) * 0.4);
     cmp.score = score;
 
-    const cue = makeCue(cmp, lang);
-    const formClass = formScorer(cmp, motionConfig.dominantJoint || exercise.primaryJoint);
-    if (score != null && formClass.conf > 0) stats.formCounts[formClass.cls] = (stats.formCounts[formClass.cls] || 0) + 1;
+    let cue = makeCue(cmp, lang);
+    let formClass = formScorer(cmp, motionConfig.dominantJoint || exercise.primaryJoint);
+    const bottleExperimental = exercise.id === 'bottle_grab' && exercise.experimentalOnly === true;
+    const sitToStandExperimental = exercise.id === 'sit_to_stand' && exercise.experimentalOnly === true;
+    const experimentalExercise = bottleExperimental || sitToStandExperimental;
+    const bottlePhase = bottleExperimental && bottlePhaseTracker
+      ? bottlePhaseTracker.push({
+        poseLandmarks: landmarks,
+        handLandmarks: frameGate?.handFrame?.landmarks || frameGate?.handFrame?.handLandmarks || null,
+        timestampMs: frameGate?.timestampMs ?? frameGate?.handFrame?.timestampMs ?? Date.now(),
+        handSide: frameGate?.handFrame?.side,
+        handScore: frameGate?.handFrame?.score,
+        bottleDetection: frameGate?.bottleDetection || null,
+        bottleDiagnostics: frameGate?.bottleDiagnostics || null,
+        sourceGeneration: frameGate?.sourceGeneration
+          ?? frameGate?.bottleDetection?.sourceGeneration
+          ?? 0,
+        positioning: frameGate?.positioning === true,
+        countingEnabled: count,
+      })
+      : null;
+    if (sitToStandExperimental) sitToStandTracker?.setCountingEnabled?.(count);
+    const sitToStandPhase = sitToStandExperimental && sitToStandTracker
+      ? sitToStandTracker.push({
+        poseLandmarks: landmarks,
+        timestampMs: frameGate?.timestampMs ?? Date.now(),
+        sourceGeneration: frameGate?.sourceGeneration ?? 0,
+        inputIsMirrored: frameGate?.inputIsMirrored === true,
+      })
+      : null;
+    const experimentalPhase = bottleExperimental ? bottlePhase : sitToStandPhase;
+    const experimentalOutputRepCount = bottleExperimental
+      ? experimentalPhase?.repCount
+      : experimentalPhase?.geometryTotalReps;
+    if (experimentalExercise && Number.isInteger(Number(experimentalOutputRepCount))) {
+      const nextRepCount = Math.max(experimentalRepCount, Number(experimentalOutputRepCount));
+      if (nextRepCount > experimentalRepCount) {
+        const atSec = Math.round(elapsed * 10) / 10;
+        for (let rep = experimentalRepCount; rep < nextRepCount; rep += 1) {
+          stats.repTimes.push(atSec);
+          stats.repQualityLog.push(qualitySnapshot(stats.currentRep, { valid: true, atSec }));
+          stats.currentRep = newRepQuality();
+          stats.invalidOpen = false;
+          onEvent && onEvent({ type: 'rep', counter: rep + 1 });
+        }
+        experimentalRepCount = nextRepCount;
+      }
+    }
+    if (bottleExperimental) {
+      // Bottle Grab experimental adapters remain outside the deterministic
+      // score/form/clinical path. In the App V7 web lane, bottle proximity owns
+      // only the explicitly labelled experimental rep count; Baseline #4,
+      // Hand comments, and PhaseNet remain cue/context branches.
+      const fault = bottlePhase?.faultDecision;
+      const faultText = fault?.messages?.[lang] || fault?.messages?.en;
+      const cuePrefix = bottlePhase?.cuePrefix || 'experimental:calibration3';
+      cue = {
+        id: fault?.primaryCueId ? `${cuePrefix}:${fault.primaryCueId}` : 'experimental:bottle_phase',
+        text: faultText || (lang === 'th' ? 'โหมดทดลอง: กำลังอ่านลำดับการเคลื่อนไหว' : 'Experimental: reading movement phase'),
+        tone: 'warn',
+        // The Calibration 3 model contract remains presentation-neutral
+        // (`tts: false`). This app-layer cue may be spoken by the Patient
+        // accessibility presenter in Standard/Audio-Only mode; it never
+        // changes the model's score/form/rep/clinical boundaries.
+        tts: true,
+      };
+      formClass = null;
+    }
+    if (sitToStandExperimental) {
+      // A Sit-to-Stand cue exists only after its separate reference engine
+      // has completed a declared phase cycle. Phase buffering/loading itself
+      // must not become a fabricated corrective voice prompt.
+      const cueText = lang === 'th' ? sitToStandPhase?.cueThai : sitToStandPhase?.cue;
+      cue = {
+        id: cueText
+          ? `experimental:sit_to_stand:${sitToStandPhase?.commentStatus}:${sitToStandPhase?.commentRepetitionCount || 0}`
+          : 'experimental:sit_to_stand_phase',
+        text: cueText || (lang === 'th'
+          ? 'โหมดทดลอง: กำลังอ่านลำดับลุก-นั่ง'
+          : 'Experimental: reading the sit-to-stand sequence'),
+        tone: cueText ? 'warn' : 'none',
+        tts: Boolean(cueText),
+      };
+      formClass = null;
+    }
+    // AI form judgment: when this exercise ships a validated NN model, the from-scratch
+    // neural network (multi-label) makes the correct/fault DECISION and supplies the spoken
+    // correction from its own comment table. Any exercise without a model keeps the
+    // rule-based scorer/cue above (graceful fallback).
+    if (nnHasModel(exercise.id)) {
+      const nn = nnClassify(exercise.id, liveAngles);
+      if (nn) {
+        const c = (nn.comments && nn.comments[0]) || {};
+        cue = {
+          id: 'nn:' + (nn.correct ? 'correct' : (nn.primary || 'fault')),
+          text: (lang === 'th' ? c.th : c.en) || cue.text,
+          tone: nn.correct ? 'good' : 'bad',
+        };
+        formClass = {
+          cls: nn.correct ? 'correct' : (nn.primary || 'fault'),
+          label: nn.correct ? 'good form' : 'not correct',
+          labelTh: nn.correct ? 'ฟอร์มดี' : 'ยังไม่ถูก',
+          conf: nn.correct ? 0.9 : (nn.probs[nn.primary] ?? 0.6),
+          detail: c.en || '', detailTh: c.th || '',
+          nn: true, active: nn.active,
+        };
+      }
+    }
+    if (score != null && formClass?.conf > 0) stats.formCounts[formClass.cls] = (stats.formCounts[formClass.cls] || 0) + 1;
     const baseGate = evaluateGate(landmarks, exercise);
     const boundary = frameGate?.boundary || frameGate || null;
     const boundaryStatus = boundary?.status || 'inside';
@@ -349,7 +469,7 @@ export function createSession(opts) {
       if (blockingBoundaryStatus === 'outside') markInvalid('boundary');
       else if (motion?.severe) markInvalid(motion.issue || 'motion');
     }
-    if (count) counter.tick(primaryAngle, score, dt, {
+    if (count && !experimentalExercise) counter.tick(primaryAngle, score, dt, {
       boundaryStatus: blockingBoundaryStatus,
       motionInvalid: !!motion?.severe,
       atPeak: motion?.atPeak,
@@ -377,8 +497,12 @@ export function createSession(opts) {
       stats.deltaN[j.joint] = (stats.deltaN[j.joint] || 0) + 1;
     }
 
+    // Experimental modules do not auto-finish through the legacy generic
+    // counter. Each has a declared, independent count authority.
+    if (experimentalExercise) counter.state.done = false;
+    const displayedReps = experimentalExercise ? experimentalRepCount : counter.state.repsInSet;
     snapshot = {
-      landmarks, score, comparison: cmp, cue, formClass, gate, recognized: lastRecog,
+      landmarks, score: experimentalExercise ? null : score, comparison: cmp, cue, formClass, gate, recognized: lastRecog,
       poseScore,
       motionScore: motion?.motionScore ?? null,
       motionBreakdown: motion ? {
@@ -395,10 +519,90 @@ export function createSession(opts) {
       activeSide: motion?.activeSide ?? null,
       repJoints: motionConfig.repJoints,
       primaryAngle, targetAngle, primaryJoint: motionConfig.dominantJoint || exercise.primaryJoint,
-      reps: counter.state.repsInSet, repsTarget: counter.repsTarget,
+      reps: displayedReps, repsTarget: counter.repsTarget,
       setsDone: counter.state.setsDone, totalSets: counter.totalSets,
       holdProgress: counter.holdProgress(), hasPose: true,
-      finished: counter.state.done, elapsed,
+      finished: experimentalExercise ? false : counter.state.done, elapsed,
+      experimental: experimentalExercise ? {
+        exerciseId: exercise.id,
+        trackingProfile: exercise.trackingProfile || null,
+        modelId: bottleExperimental
+          ? (bottlePhase?.modelId || exercise.modelId)
+          : (sitToStandPhase?.moduleId || exercise.modelId),
+        modelVersion: bottleExperimental
+          ? (bottlePhase?.modelVersion || null)
+          : (sitToStandPhase?.moduleVersion || exercise.modelVersion || null),
+        decisionScope: bottleExperimental
+          ? (bottlePhase?.decisionScope || 'development_fault_cue_preview')
+          : 'experimental_pwa_pose_only_phase_context_and_geometry_counter',
+        phase: bottleExperimental ? (bottlePhase?.phase || null) : (sitToStandPhase?.phase || null),
+        probabilities: bottleExperimental
+          ? (bottlePhase?.probabilities || null)
+          : (sitToStandPhase?.phaseProbabilities || null),
+        status: bottleExperimental
+          ? (bottlePhase?.status || 'no_model_frame')
+          : (sitToStandPhase?.phaseStatus || 'no_model_frame'),
+        faultDecision: bottlePhase?.faultDecision || null,
+        captureQc: bottleExperimental ? (bottlePhase?.captureQc || null) : (sitToStandPhase?.captureQC || null),
+        bufferedFrames: bottleExperimental ? (bottlePhase?.bufferedFrames || 0) : (sitToStandPhase?.featureFrameCount || 0),
+        restReferenceAvailable: bottlePhase?.restReferenceAvailable === true,
+        sourceType: bottleExperimental
+          ? (bottlePhase?.sourceType || 'camera_live_device_preview')
+          : 'camera_macbook_web_pose_only_preview',
+        repCount: experimentalRepCount,
+        repCounterStatus: bottlePhase?.repCounterStatus || 'collecting_rest',
+        repCounterReason: bottlePhase?.repCounterReason || null,
+        repCounterDidComplete: bottlePhase?.repCounterDidComplete === true,
+        repCounterProvenance: bottlePhase?.repCounterProvenance || null,
+        repCounterConditions: bottlePhase?.repCounterConditions || null,
+        counterMode: bottleExperimental ? (bottlePhase?.counterMode || null) : (sitToStandPhase?.counterMode || null),
+        bottleStatus: bottlePhase?.bottleStatus || null,
+        bottleInZone: bottlePhase?.bottleInZone ?? null,
+        bottleScore: bottlePhase?.bottleScore ?? null,
+        proximityRepCount: bottlePhase?.proximityRepCount ?? null,
+        proximityRepStatus: bottlePhase?.proximityRepStatus || null,
+        proximityRepReason: bottlePhase?.proximityRepReason || null,
+        proximityRepDidComplete: bottlePhase?.proximityRepDidComplete === true,
+        proximityRepProvenance: bottlePhase?.proximityRepProvenance || null,
+        proximityRepConditions: bottlePhase?.proximityRepConditions || null,
+        experimentalProximityCount: bottlePhase?.experimentalProximityCount ?? null,
+        fingerQualityStatus: bottlePhase?.fingerQualityStatus || null,
+        v7Detector: bottlePhase?.v7Detector || null,
+        v7Contract: bottlePhase?.v7Contract || null,
+        geometryRepCount: Number.isInteger(Number(bottlePhase?.geometryRepCount))
+          ? Number(bottlePhase.geometryRepCount)
+          : experimentalRepCount,
+        geometryFirst: bottlePhase?.geometryFirst || null,
+        phaseContext: bottlePhase?.phaseContext || null,
+        phaseContextAvailable: bottlePhase?.phaseContextAvailable === true,
+        phaseContextUnavailableReason: bottlePhase?.phaseContextUnavailableReason || null,
+        // V7.3.3 PWA Bottle Detector Diagnostics. These are local UI evidence
+        // and cannot alter the V7 Pose-proximity counter.
+        bottleDiagnostics: bottlePhase?.bottleDiagnostics || null,
+        bottleDiagnosticsStatus: bottlePhase?.bottleDiagnosticsStatus || null,
+        bottleRawCandidateCount: bottlePhase?.bottleRawCandidateCount ?? null,
+        bottleAcceptedCandidateCount: bottlePhase?.bottleAcceptedCandidateCount ?? null,
+        bottleTopLabel: bottlePhase?.bottleTopLabel || null,
+        bottleTopScore: bottlePhase?.bottleTopScore ?? null,
+        bottleSourceGeneration: bottlePhase?.bottleSourceGeneration ?? null,
+        bottleSelectionReason: bottlePhase?.bottleSelectionReason || null,
+        bottleRoiAgeMs: bottlePhase?.bottleRoiAgeMs ?? null,
+        bottleRoiFresh: bottlePhase?.bottleRoiFresh === true,
+        bottleCounterStage: bottlePhase?.bottleCounterStage || null,
+        bottleCounterReason: bottlePhase?.bottleCounterReason || null,
+        sitToStand: sitToStandExperimental ? {
+          geometryStatus: sitToStandPhase?.geometryStatus || 'cannot_assess',
+          geometryTotalReps: sitToStandPhase?.geometryTotalReps ?? 0,
+          geometryRepetitionCompleted: sitToStandPhase?.geometryRepetitionCompleted === true,
+          phaseStatus: sitToStandPhase?.phaseStatus || 'cannot_assess',
+          phase: sitToStandPhase?.phase || null,
+          phaseProbabilities: sitToStandPhase?.phaseProbabilities || null,
+          commentStatus: sitToStandPhase?.commentStatus || 'cannot_assess',
+          commentRepetitionCount: sitToStandPhase?.commentRepetitionCount ?? 0,
+          setupReason: sitToStandPhase?.setupReason || null,
+          isTrackingReady: sitToStandPhase?.isTrackingReady === true,
+        } : null,
+      } : null,
     };
     return snapshot;
   }
@@ -410,15 +614,23 @@ export function createSession(opts) {
   }
 
   function finishSummary() {
+    const bottleExperimental = exercise.id === 'bottle_grab' && exercise.experimentalOnly === true;
+    const sitToStandExperimental = exercise.id === 'sit_to_stand' && exercise.experimentalOnly === true;
+    const experimentalExercise = bottleExperimental || sitToStandExperimental;
+    const experimentalTracker = bottleExperimental ? bottlePhaseTracker : sitToStandTracker;
     const avgPoseScore = avg(stats.poseScoreSum, stats.poseScoreN, avg(stats.scoreSum, stats.scoreN, 0));
     const avgMotionScore = avg(stats.motionScoreSum, stats.motionScoreN, 100);
     const overallScore = Math.round(avgPoseScore * 0.6 + avgMotionScore * 0.4);
-    const validReps = counter.state.setsDone * counter.repsTarget + counter.state.repsInSet;
+    const validReps = experimentalExercise
+      ? experimentalRepCount
+      : counter.state.setsDone * counter.repsTarget + counter.state.repsInSet;
     return {
       patientId, exerciseId: exercise.id, exerciseKey: exercise.key,
       endedAt: Date.now(), durationSec: Math.round(elapsed),
       reps: validReps,
-      sets: counter.state.setsDone + (counter.state.repsInSet > 0 ? 1 : 0),
+      sets: experimentalExercise
+        ? (validReps > 0 ? 1 : 0)
+        : counter.state.setsDone + (counter.state.repsInSet > 0 ? 1 : 0),
       avgScore: overallScore,
       overallScore,
       avgPoseScore,
@@ -439,11 +651,41 @@ export function createSession(opts) {
       motionIssueCounts: { ...stats.motionIssueCounts },
       repQualityLog: stats.repQualityLog.slice(-60),
       repLog: stats.repTimes.slice(), formBreakdown: { ...stats.formCounts },
+      experimentalOnly: exercise.experimentalOnly === true,
+      experimentalModelId: experimentalExercise ? (experimentalTracker?.modelId || exercise.modelId) : null,
+      experimentalModelVersion: experimentalExercise
+        ? (experimentalTracker?.modelVersion || exercise.modelVersion || null)
+        : null,
+      experimentalDecisionScope: experimentalExercise
+        ? (experimentalTracker?.decisionScope || (sitToStandExperimental
+          ? 'experimental_pwa_pose_only_phase_context_and_geometry_counter'
+          : 'development_fault_cue_preview'))
+        : null,
+      experimentalCounterMode: experimentalExercise
+        ? (experimentalTracker?.counterMode || (sitToStandExperimental ? 'parallel_geometry_counter' : null))
+        : null,
     };
   }
 
+  function resetExperimentalCaptureSource(reason = 'capture_source_replaced') {
+    const bottleExperimental = exercise.id === 'bottle_grab' && exercise.experimentalOnly === true;
+    const sitToStandExperimental = exercise.id === 'sit_to_stand' && exercise.experimentalOnly === true;
+    if (!bottleExperimental && !sitToStandExperimental) return;
+    const tracker = bottleExperimental ? bottlePhaseTracker : sitToStandTracker;
+    tracker?.resetForNewCaptureSource?.(reason);
+    // Completed experimental repetitions remain visible across a camera/lens
+    // source replacement; only the adapter's partial state is cleared.
+    snapshot = null;
+  }
+
   return {
-    pushFrame, finishSummary, reset: init,
+    pushFrame,
+    finishSummary,
+    reset: init,
+    // Retain the old name for existing Bottle Grab callers, but expose a
+    // neutral source-reset seam for every experimental module.
+    resetBottleCaptureSource: resetExperimentalCaptureSource,
+    resetExperimentalCaptureSource,
     setLang: (l) => { lang = l; },
     get snapshot() { return snapshot; },
     get exercise() { return exercise; },

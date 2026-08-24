@@ -1,0 +1,33 @@
+{
+  "schema": "physioai.app_v7_3_3.sit_to_stand_pwa_assets.v1",
+  "status": "experimental_local_pwa_only",
+  "appIntegrationAuthorized": false,
+  "patientFacingApproved": false,
+  "clinicalClaimAllowed": false,
+  "modelOwnedContract": "models/AI_Models/NN_ExerciseClassifier/experiments/sit_to_stand_pose_only_v1/integration_bundle/contracts/sit_to_stand_phasenet_v1_pwa.contract.json",
+  "sourceNativeExport": "models/AI_Models/NN_ExerciseClassifier/experiments/sit_to_stand_pose_only_v1/integration_bundle/manifests/sit_to_stand_phasenet_v1_native_float32.manifest.json",
+  "module": {
+    "id": "sit_to_stand_pwa_v7_3_3_experimental",
+    "version": "7.3.3-pwa-experimental",
+    "trackingProfile": "pose_only",
+    "repetitionAuthority": "parallel_geometry_counter",
+    "phaseNetAuthority": "phase_comment_context_only"
+  },
+  "weights": [
+    { "file": "causal_tcn_dilation_1__0.f32", "sha256": "0c15f7dd638f1da1d5edf4b5ec827d708dc95088ec97440548d7c5fed71e6e28" },
+    { "file": "causal_tcn_dilation_1__1.f32", "sha256": "59fbd8f23e6b3a814e6e349ec1bff85da6aec1b2ee2643d2b0afd1095a3ea605" },
+    { "file": "residual_projection__0.f32", "sha256": "abf4109bb6d628f8dd8069f24c9f025995ce9d98e03dae677b6dfba54e922280" },
+    { "file": "residual_projection__1.f32", "sha256": "4ad8890326d89fe6fb345107a643200e294399fd780e372e51d7460771fd53f1" },
+    { "file": "causal_tcn_dilation_2__0.f32", "sha256": "1c153e6d5f3bac1f66a7da6e0ed5b89244c26955cff5ed7b0489c1593f8e6c5d" },
+    { "file": "causal_tcn_dilation_2__1.f32", "sha256": "59c4f8a2868c60f243c616e9ba44b748766b238f585f27b2e1ecf6d641a82c27" },
+    { "file": "causal_tcn_dilation_4__0.f32", "sha256": "fb1573cd7cd94f2b2af7fe7f0531f0deee6420121b210442d69d6161607715e5" },
+    { "file": "causal_tcn_dilation_4__1.f32", "sha256": "2026a50a681196825980617386b8f0d4e2d159b7813c65e68a5f6536f26879ee" },
+    { "file": "phase_probabilities__0.f32", "sha256": "36525a66c660295468b9ef8acc61b1e14848df46cf1199e80560c70245bd9d26" },
+    { "file": "phase_probabilities__1.f32", "sha256": "2228d400ec6771a3c29b9000bf74234b6a0b6dd4404d33186e9ad0e8027303e6" }
+  ],
+  "referenceProfile": {
+    "file": "sit_to_stand_front_normal_reference_profile_v1_expanded_development.json",
+    "sha256": "3b68b78b3d6da3c510f5544a4289b1e4a5e62b5741486d629166247ac60c5479",
+    "status": "train_only_front_development_reference"
+  }
+}

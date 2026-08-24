@@ -1,0 +1,429 @@
+{
+  "schema": "physioai.bottle_grab_phasenet_v2_browser_runtime.v1",
+  "runtimeId": "bottle_grab_phasenet_v2_browser_static_f32_v1",
+  "status": "experimental_phase_status_only_not_deployable",
+  "sourcePins": {
+    "modelId": "bottlegrab_posehand_phasenet_v2_same_lineage_video_expansion_train_only",
+    "contractId": "bottle_grab_phasenet_v2_same_lineage_video_expansion",
+    "modelPath": "../artifacts/models/bottlegrab_posehand_phasenet_v2_same_lineage_video_expansion_train_only.keras",
+    "modelSha256": "020927a826c2d6e30efc791fe6b7b3ef95dd185bf6d25328617e7d7a1bbc7367",
+    "manifestPath": "../artifacts/models/bottlegrab_posehand_phasenet_v2_same_lineage_video_expansion_train_only.manifest.json",
+    "manifestSha256": "b76ed8f8a9d37e09c00254fbd28b40aef81c040e1ed03ad04f6d7a03bdb56669",
+    "contractPath": "../config/bottle_grab_phasenet_v2_same_lineage_video_expansion.contract.json",
+    "contractSha256": "5e1a91b0fc0522e76e4d51b3d8ca483215ac9a68d461ac3d37baefde79c1672c",
+    "modelGraphSha256": "35b38a9e7ce95390b5bfb71ce90cd2f92b4d939388612247aba49585e71a5742"
+  },
+  "input": {
+    "featureOrder": [
+      "pose_elbow_flexion_norm",
+      "pose_wrist_rel_shoulder_x_arm",
+      "pose_wrist_rel_shoulder_y_arm",
+      "pose_coarse_hand_centroid_rel_wrist_x_arm",
+      "pose_coarse_hand_centroid_rel_wrist_y_arm",
+      "pose_elbow_flexion_delta",
+      "pose_wrist_rel_shoulder_x_delta",
+      "pose_wrist_rel_shoulder_y_delta",
+      "pose_coarse_hand_centroid_rel_wrist_x_delta",
+      "pose_coarse_hand_centroid_rel_wrist_y_delta",
+      "hand_thumb_mcp_flexion_norm",
+      "hand_thumb_ip_flexion_norm",
+      "hand_index_mcp_flexion_norm",
+      "hand_index_pip_flexion_norm",
+      "hand_index_dip_flexion_norm",
+      "hand_mean_finger_flexion_norm",
+      "hand_thumb_index_aperture_palm_ratio",
+      "hand_thumb_index_aperture_delta",
+      "hand_mean_finger_flexion_delta",
+      "hand_index_pip_flexion_delta"
+    ],
+    "paddingAllowed": false,
+    "samplingHz": 15,
+    "shape": [
+      30,
+      20
+    ],
+    "staleFrameBridgingAllowed": false,
+    "windowStrideFrames": 3,
+    "featureOrderSha256": "3950a58caf69819fe048e3b2f355e814958b1d12d1241e7f6a17e2299cf05cff",
+    "inputContractSha256": "4eb54bbee82c93b7d8377631c048e9c1e5393d9df02fa1a9c092c25f04b1b70d",
+    "anatomicalSide": "left",
+    "endpointAlignment": "prediction_belongs_to_final_source_timestamp_of_causal_window",
+    "maxContiguousGapMs": 100.0,
+    "windowSpanToleranceMs": 66.66666666666667,
+    "resamplingOwnedByCaller": true,
+    "interpolationOrPaddingInsideAccumulator": false
+  },
+  "output": {
+    "classOrder": [
+      "start_or_rest",
+      "reach",
+      "preshape",
+      "grasp",
+      "release",
+      "return"
+    ],
+    "classOrderSha256": "c689faf8be163142cb107f8faa2537ebdc5e9f0e0853a3e840acba6f27c9bdf0",
+    "classCount": 6,
+    "decisionScope": "phase_only",
+    "supportedFaultTags": [],
+    "commentOrQualityOutputAllowed": false,
+    "cannotAssessRole": "external_capture_qc_disposition_not_nn_class"
+  },
+  "browserArtifact": {
+    "format": "raw_float32_little_endian",
+    "path": "artifacts/phasenet_v2_browser_weights.f32",
+    "sha256": "b522a4e5f705594ccdfc400d24b11cc87677f39961698f95a63dfddcb1e1fd43",
+    "byteLength": 55480,
+    "floatCount": 13870,
+    "weightLayout": [
+      {
+        "key": "pose_norm_gamma",
+        "layerName": "pose_normalization",
+        "tensorIndex": 0,
+        "shape": [
+          10
+        ],
+        "offsetFloats": 0,
+        "floatCount": 10
+      },
+      {
+        "key": "pose_norm_beta",
+        "layerName": "pose_normalization",
+        "tensorIndex": 1,
+        "shape": [
+          10
+        ],
+        "offsetFloats": 10,
+        "floatCount": 10
+      },
+      {
+        "key": "hand_norm_gamma",
+        "layerName": "hand_normalization",
+        "tensorIndex": 0,
+        "shape": [
+          10
+        ],
+        "offsetFloats": 20,
+        "floatCount": 10
+      },
+      {
+        "key": "hand_norm_beta",
+        "layerName": "hand_normalization",
+        "tensorIndex": 1,
+        "shape": [
+          10
+        ],
+        "offsetFloats": 30,
+        "floatCount": 10
+      },
+      {
+        "key": "pose_encoder_d1_kernel",
+        "layerName": "pose_encoder_d1",
+        "tensorIndex": 0,
+        "shape": [
+          5,
+          10,
+          24
+        ],
+        "offsetFloats": 40,
+        "floatCount": 1200
+      },
+      {
+        "key": "pose_encoder_d1_bias",
+        "layerName": "pose_encoder_d1",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 1240,
+        "floatCount": 24
+      },
+      {
+        "key": "hand_encoder_d1_kernel",
+        "layerName": "hand_encoder_d1",
+        "tensorIndex": 0,
+        "shape": [
+          5,
+          10,
+          24
+        ],
+        "offsetFloats": 1264,
+        "floatCount": 1200
+      },
+      {
+        "key": "hand_encoder_d1_bias",
+        "layerName": "hand_encoder_d1",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 2464,
+        "floatCount": 24
+      },
+      {
+        "key": "pose_projection_d1_kernel",
+        "layerName": "pose_projection_d1",
+        "tensorIndex": 0,
+        "shape": [
+          1,
+          24,
+          24
+        ],
+        "offsetFloats": 2488,
+        "floatCount": 576
+      },
+      {
+        "key": "pose_projection_d1_bias",
+        "layerName": "pose_projection_d1",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 3064,
+        "floatCount": 24
+      },
+      {
+        "key": "pose_residual_d1_kernel",
+        "layerName": "pose_residual_d1",
+        "tensorIndex": 0,
+        "shape": [
+          1,
+          10,
+          24
+        ],
+        "offsetFloats": 3088,
+        "floatCount": 240
+      },
+      {
+        "key": "pose_residual_d1_bias",
+        "layerName": "pose_residual_d1",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 3328,
+        "floatCount": 24
+      },
+      {
+        "key": "hand_projection_d1_kernel",
+        "layerName": "hand_projection_d1",
+        "tensorIndex": 0,
+        "shape": [
+          1,
+          24,
+          24
+        ],
+        "offsetFloats": 3352,
+        "floatCount": 576
+      },
+      {
+        "key": "hand_projection_d1_bias",
+        "layerName": "hand_projection_d1",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 3928,
+        "floatCount": 24
+      },
+      {
+        "key": "hand_residual_d1_kernel",
+        "layerName": "hand_residual_d1",
+        "tensorIndex": 0,
+        "shape": [
+          1,
+          10,
+          24
+        ],
+        "offsetFloats": 3952,
+        "floatCount": 240
+      },
+      {
+        "key": "hand_residual_d1_bias",
+        "layerName": "hand_residual_d1",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 4192,
+        "floatCount": 24
+      },
+      {
+        "key": "pose_encoder_d2_kernel",
+        "layerName": "pose_encoder_d2",
+        "tensorIndex": 0,
+        "shape": [
+          5,
+          24,
+          24
+        ],
+        "offsetFloats": 4216,
+        "floatCount": 2880
+      },
+      {
+        "key": "pose_encoder_d2_bias",
+        "layerName": "pose_encoder_d2",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 7096,
+        "floatCount": 24
+      },
+      {
+        "key": "hand_encoder_d2_kernel",
+        "layerName": "hand_encoder_d2",
+        "tensorIndex": 0,
+        "shape": [
+          5,
+          24,
+          24
+        ],
+        "offsetFloats": 7120,
+        "floatCount": 2880
+      },
+      {
+        "key": "hand_encoder_d2_bias",
+        "layerName": "hand_encoder_d2",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 10000,
+        "floatCount": 24
+      },
+      {
+        "key": "pose_projection_d2_kernel",
+        "layerName": "pose_projection_d2",
+        "tensorIndex": 0,
+        "shape": [
+          1,
+          24,
+          24
+        ],
+        "offsetFloats": 10024,
+        "floatCount": 576
+      },
+      {
+        "key": "pose_projection_d2_bias",
+        "layerName": "pose_projection_d2",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 10600,
+        "floatCount": 24
+      },
+      {
+        "key": "hand_projection_d2_kernel",
+        "layerName": "hand_projection_d2",
+        "tensorIndex": 0,
+        "shape": [
+          1,
+          24,
+          24
+        ],
+        "offsetFloats": 10624,
+        "floatCount": 576
+      },
+      {
+        "key": "hand_projection_d2_bias",
+        "layerName": "hand_projection_d2",
+        "tensorIndex": 1,
+        "shape": [
+          24
+        ],
+        "offsetFloats": 11200,
+        "floatCount": 24
+      },
+      {
+        "key": "fusion_embedding_kernel",
+        "layerName": "fusion_embedding",
+        "tensorIndex": 0,
+        "shape": [
+          48,
+          48
+        ],
+        "offsetFloats": 11224,
+        "floatCount": 2304
+      },
+      {
+        "key": "fusion_embedding_bias",
+        "layerName": "fusion_embedding",
+        "tensorIndex": 1,
+        "shape": [
+          48
+        ],
+        "offsetFloats": 13528,
+        "floatCount": 48
+      },
+      {
+        "key": "phase_class_kernel",
+        "layerName": "phase_class",
+        "tensorIndex": 0,
+        "shape": [
+          48,
+          6
+        ],
+        "offsetFloats": 13576,
+        "floatCount": 288
+      },
+      {
+        "key": "phase_class_bias",
+        "layerName": "phase_class",
+        "tensorIndex": 1,
+        "shape": [
+          6
+        ],
+        "offsetFloats": 13864,
+        "floatCount": 6
+      }
+    ]
+  },
+  "runtimeApi": {
+    "featureModule": "browser/phasenet_v2_features.mjs",
+    "runtimeModule": "browser/phasenet_v2_runtime.mjs",
+    "exports": [
+      "getMediaPipeHandednessCategory",
+      "getMediaPipeHandednessScore",
+      "buildPhaseNetV2FeatureFrame",
+      "createPhaseNetV2WindowAccumulator",
+      "validatePhaseNetV2Window",
+      "loadPhaseNetV2RuntimeFromBytes",
+      "loadPhaseNetV2Runtime"
+    ],
+    "handednessAccessor": {
+      "source": "HandLandmarkerResult.handednesses[handIndex][0]",
+      "returns": [
+        "categoryName",
+        "score"
+      ],
+      "missingOrInvalidBehavior": "throw_fail_closed"
+    },
+    "resetEventsOwnedByCaller": [
+      "source_replaced",
+      "seek",
+      "replay",
+      "loop",
+      "end_of_source",
+      "capture_qc_failure"
+    ]
+  },
+  "parity": {
+    "goldenInputsPath": "golden/phasenet_v2_golden_inputs.json",
+    "goldenInputsSha256": "aee68b0fe1379fef789991f62457edbd4ad2944d63bb8e4c1b57f3676792823d",
+    "absoluteTolerance": 1e-06,
+    "argmaxMustMatch": true,
+    "role": "runtime_numeric_parity_only_not_model_performance"
+  },
+  "prohibited": [
+    "training",
+    "fine_tuning",
+    "model_performance_claim",
+    "form_or_quality_decision",
+    "coaching_cue",
+    "correct_or_incorrect",
+    "forced_debug_comment_output",
+    "network_or_upload_fallback"
+  ]
+}

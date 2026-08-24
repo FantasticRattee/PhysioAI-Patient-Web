@@ -1,0 +1,1024 @@
+{
+  "schema": "physioai.sit_to_stand.normal_reference_profile.v1",
+  "engineId": "sit_to_stand_reference_engine_v1_train_only",
+  "engineVersion": "1.0.0-train-only-normal-reference",
+  "exerciseId": "sit_to_stand",
+  "trackingProfile": "pose_only",
+  "viewProfile": "front",
+  "nominalRepetitionCount": 19,
+  "acceptedFeatureRowCount": 887,
+  "featureNames": [
+    "pelvis_height_above_ankles_norm",
+    "pelvis_height_velocity_norm_per_s",
+    "pelvis_view_plane_offset_from_ankles_norm",
+    "pelvis_view_plane_velocity_norm_per_s",
+    "trunk_view_plane_tilt_deg_div_90",
+    "trunk_view_plane_tilt_velocity_tanh",
+    "trunk_lateral_offset_norm",
+    "trunk_lateral_velocity_norm_per_s",
+    "left_hip_angle_deg_div_180",
+    "right_hip_angle_deg_div_180",
+    "hip_angle_asymmetry_deg_div_180",
+    "left_knee_angle_deg_div_180",
+    "right_knee_angle_deg_div_180",
+    "knee_angle_asymmetry_deg_div_180",
+    "left_ankle_proxy_angle_deg_div_180",
+    "right_ankle_proxy_angle_deg_div_180",
+    "ankle_proxy_asymmetry_deg_div_180",
+    "stance_width_norm",
+    "foot_center_offset_from_pelvis_norm",
+    "left_wrist_to_shoulder_x_norm",
+    "left_wrist_to_shoulder_y_norm",
+    "right_wrist_to_shoulder_x_norm",
+    "right_wrist_to_shoulder_y_norm",
+    "left_wrist_speed_norm_per_s",
+    "right_wrist_speed_norm_per_s",
+    "left_elbow_angle_deg_div_180",
+    "right_elbow_angle_deg_div_180",
+    "left_arm_elevation_deg_div_180",
+    "right_arm_elevation_deg_div_180",
+    "wrist_span_norm"
+  ],
+  "featureNormalization": "pelvis_torso_scale_view_relative.v1",
+  "phaseFeatureEnvelopes": {
+    "lower": {
+      "pelvis_height_above_ankles_norm": {
+        "median": 0.7791364155803626,
+        "mad": 0.24978390866786904,
+        "lower": 0.029784689576755508,
+        "upper": 1.5284881415839697,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_height_velocity_norm_per_s": {
+        "median": -1.507765771532258,
+        "mad": 1.1716524669371844,
+        "lower": -5.022723172343811,
+        "upper": 2.007191629279295,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_offset_from_ankles_norm": {
+        "median": -0.036334957756492474,
+        "mad": 0.021383072178093245,
+        "lower": -0.10048417429077222,
+        "upper": 0.027814258777787267,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_velocity_norm_per_s": {
+        "median": 0.030775803459504397,
+        "mad": 0.0790526273971221,
+        "lower": -0.2063820787318619,
+        "upper": 0.2679336856508707,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_deg_div_90": {
+        "median": 0.0004763875606909818,
+        "mad": 0.02398894032766197,
+        "lower": -0.07149043342229493,
+        "upper": 0.0724432085436769,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_velocity_tanh": {
+        "median": 0.009440548703126007,
+        "mad": 0.03892034465302961,
+        "lower": -0.10732048525596283,
+        "upper": 0.12620158266221485,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_offset_norm": {
+        "median": 0.000615526498148965,
+        "mad": 0.016148801926288328,
+        "lower": -0.04783087928071602,
+        "upper": 0.04906193227701395,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_velocity_norm_per_s": {
+        "median": 0.012682863376282662,
+        "mad": 0.03693124833010731,
+        "lower": -0.09811088161403927,
+        "upper": 0.1234766083666046,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_hip_angle_deg_div_180": {
+        "median": 0.7297557980329155,
+        "mad": 0.17698485574714595,
+        "lower": 0.1988012307914776,
+        "upper": 1.2607103652743534,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_hip_angle_deg_div_180": {
+        "median": 0.5704590461338801,
+        "mad": 0.21175820693125136,
+        "lower": -0.06481557465987398,
+        "upper": 1.2057336669276342,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "hip_angle_asymmetry_deg_div_180": {
+        "median": 0.09250599126282771,
+        "mad": 0.06383725693328128,
+        "lower": -0.09900577953701611,
+        "upper": 0.28401776206267154,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_knee_angle_deg_div_180": {
+        "median": 0.7447613819902141,
+        "mad": 0.09927700308053256,
+        "lower": 0.44693037274861647,
+        "upper": 1.0425923912318118,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_knee_angle_deg_div_180": {
+        "median": 0.5935776306251843,
+        "mad": 0.11685927423745901,
+        "lower": 0.2429998079128073,
+        "upper": 0.9441554533375613,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "knee_angle_asymmetry_deg_div_180": {
+        "median": 0.1064253034467495,
+        "mad": 0.07271697802907116,
+        "lower": -0.11172563064046398,
+        "upper": 0.324576237533963,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_ankle_proxy_angle_deg_div_180": {
+        "median": 0.28845312364703796,
+        "mad": 0.0545617579416528,
+        "lower": 0.12476784982207956,
+        "upper": 0.45213839747199636,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_ankle_proxy_angle_deg_div_180": {
+        "median": 0.31324222944075514,
+        "mad": 0.06589754066955392,
+        "lower": 0.11554960743209339,
+        "upper": 0.5109348514494169,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "ankle_proxy_asymmetry_deg_div_180": {
+        "median": 0.02011935295275329,
+        "mad": 0.010864851899600523,
+        "lower": -0.01247520274604828,
+        "upper": 0.052713908651554856,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "stance_width_norm": {
+        "median": 0.5981690240382727,
+        "mad": 0.17592720088955904,
+        "lower": 0.07038742136959553,
+        "upper": 1.12595062670695,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "foot_center_offset_from_pelvis_norm": {
+        "median": 0.031987049096491846,
+        "mad": 0.025092683562053367,
+        "lower": -0.043291001589668254,
+        "upper": 0.10726509978265195,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_x_norm": {
+        "median": -0.2057677544169647,
+        "mad": 0.05567373838900036,
+        "lower": -0.3727889695839658,
+        "upper": -0.03874653924996363,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_y_norm": {
+        "median": 0.6221744849940066,
+        "mad": 0.15872652134564974,
+        "lower": 0.1459949209570574,
+        "upper": 1.0983540490309558,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_x_norm": {
+        "median": 0.2707293836424452,
+        "mad": 0.07820623175297048,
+        "lower": 0.03611068838353376,
+        "upper": 0.5053480789013567,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_y_norm": {
+        "median": 0.621436520967361,
+        "mad": 0.16072109778160493,
+        "lower": 0.13927322762254624,
+        "upper": 1.103599814312176,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_speed_norm_per_s": {
+        "median": 0.4232663939251845,
+        "mad": 0.21610185030363147,
+        "lower": -0.22503915698570987,
+        "upper": 1.0715719448360788,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_speed_norm_per_s": {
+        "median": 0.4167319908562666,
+        "mad": 0.21143067916839567,
+        "lower": -0.21756004664892042,
+        "upper": 1.0510240283614536,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_elbow_angle_deg_div_180": {
+        "median": 0.690850659369847,
+        "mad": 0.0614815397184405,
+        "lower": 0.5064060402145255,
+        "upper": 0.8752952785251685,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_elbow_angle_deg_div_180": {
+        "median": 0.8002495232479729,
+        "mad": 0.038156364932382614,
+        "lower": 0.6857804284508251,
+        "upper": 0.9147186180451208,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "left_arm_elevation_deg_div_180": {
+        "median": -0.0846814809689084,
+        "mad": 0.011654428082462073,
+        "lower": -0.11964476521629462,
+        "upper": -0.04971819672152218,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "right_arm_elevation_deg_div_180": {
+        "median": 0.12215969112566005,
+        "mad": 0.013595429456988106,
+        "lower": 0.08137340275469573,
+        "upper": 0.16294597949662437,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      },
+      "wrist_span_norm": {
+        "median": 0.30256838225259863,
+        "mad": 0.0630748377127307,
+        "lower": 0.11334386911440653,
+        "upper": 0.49179289539079074,
+        "sampleCount": 149,
+        "nominalRepetitionCount": 19
+      }
+    },
+    "rise": {
+      "pelvis_height_above_ankles_norm": {
+        "median": 0.9054723457320256,
+        "mad": 0.2836512836237103,
+        "lower": 0.05451849486089477,
+        "upper": 1.7564261966031565,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_height_velocity_norm_per_s": {
+        "median": 0.9487496956683019,
+        "mad": 1.0218522288612393,
+        "lower": -2.116806990915416,
+        "upper": 4.01430638225202,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_offset_from_ankles_norm": {
+        "median": -0.028654732315135045,
+        "mad": 0.02154244305384343,
+        "lower": -0.09328206147666535,
+        "upper": 0.035972596846395255,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_velocity_norm_per_s": {
+        "median": -0.020997554303737204,
+        "mad": 0.06631148992079189,
+        "lower": -0.21993202406611287,
+        "upper": 0.17793691545863846,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_deg_div_90": {
+        "median": -0.019908032981284202,
+        "mad": 0.013087224278469513,
+        "lower": -0.059169705816692744,
+        "upper": 0.019353639854124336,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_velocity_tanh": {
+        "median": 0.002197090165271882,
+        "mad": 0.0428017342146425,
+        "lower": -0.1262081124786556,
+        "upper": 0.13060229280919938,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_offset_norm": {
+        "median": -0.02092089951413857,
+        "mad": 0.012594744703252402,
+        "lower": -0.058705133623895775,
+        "upper": 0.016863334595618635,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_velocity_norm_per_s": {
+        "median": -0.010959678176719527,
+        "mad": 0.044244890565342095,
+        "lower": -0.14369434987274582,
+        "upper": 0.12177499351930676,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_hip_angle_deg_div_180": {
+        "median": 0.419030495074366,
+        "mad": 0.24064009722237661,
+        "lower": -0.3028897965927639,
+        "upper": 1.1409507867414959,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_hip_angle_deg_div_180": {
+        "median": 0.45152441045668296,
+        "mad": 0.23869392733654954,
+        "lower": -0.2645573715529656,
+        "upper": 1.1676061924663315,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "hip_angle_asymmetry_deg_div_180": {
+        "median": 0.060548418920805445,
+        "mad": 0.028056296580332367,
+        "lower": -0.02362047082019165,
+        "upper": 0.14471730866180255,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_knee_angle_deg_div_180": {
+        "median": 0.3981271049482312,
+        "mad": 0.24189699205839038,
+        "lower": -0.32756387122693986,
+        "upper": 1.1238180811234022,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_knee_angle_deg_div_180": {
+        "median": 0.3051700777988326,
+        "mad": 0.16770636089375146,
+        "lower": -0.1979490048824218,
+        "upper": 0.808289160480087,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "knee_angle_asymmetry_deg_div_180": {
+        "median": 0.03482466830305976,
+        "mad": 0.03192747604236251,
+        "lower": -0.06095775982402778,
+        "upper": 0.13060709643014728,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_ankle_proxy_angle_deg_div_180": {
+        "median": 0.21575953334143397,
+        "mad": 0.04829007340577893,
+        "lower": 0.07088931312409719,
+        "upper": 0.36062975355877075,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_ankle_proxy_angle_deg_div_180": {
+        "median": 0.23477863073428723,
+        "mad": 0.04901734320514134,
+        "lower": 0.08772660111886321,
+        "upper": 0.38183066034971125,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "ankle_proxy_asymmetry_deg_div_180": {
+        "median": 0.01481059582392478,
+        "mad": 0.006024831884955301,
+        "lower": -0.015189404176075219,
+        "upper": 0.04481059582392478,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "stance_width_norm": {
+        "median": 0.7678108794102145,
+        "mad": 0.2946111964401834,
+        "lower": -0.1160227099103357,
+        "upper": 1.6516444687307648,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "foot_center_offset_from_pelvis_norm": {
+        "median": 0.028855105302699333,
+        "mad": 0.035323100979772704,
+        "lower": -0.07711419763661878,
+        "upper": 0.13482440824201744,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_x_norm": {
+        "median": -0.2513451039660248,
+        "mad": 0.07003274362870848,
+        "lower": -0.4614433348521502,
+        "upper": -0.04124687307989933,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_y_norm": {
+        "median": 0.7548901603508702,
+        "mad": 0.17473092228802567,
+        "lower": 0.2306973934867932,
+        "upper": 1.2790829272149473,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_x_norm": {
+        "median": 0.34191313525670736,
+        "mad": 0.11212559883591469,
+        "lower": 0.005536338748963254,
+        "upper": 0.6782899317644515,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_y_norm": {
+        "median": 0.7609742581130606,
+        "mad": 0.17760799947849182,
+        "lower": 0.22815025967758518,
+        "upper": 1.293798256548536,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_speed_norm_per_s": {
+        "median": 0.4830072281344132,
+        "mad": 0.2080258498364918,
+        "lower": -0.14107032137506226,
+        "upper": 1.1070847776438888,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_speed_norm_per_s": {
+        "median": 0.49674014714821935,
+        "mad": 0.21723091111103343,
+        "lower": -0.15495258618488095,
+        "upper": 1.1484328804813195,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_elbow_angle_deg_div_180": {
+        "median": 0.6754471187779305,
+        "mad": 0.09175062731951866,
+        "lower": 0.4001952368193745,
+        "upper": 0.9506990007364865,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_elbow_angle_deg_div_180": {
+        "median": 0.8169270743385618,
+        "mad": 0.06125348338316816,
+        "lower": 0.6331666241890573,
+        "upper": 1.0006875244880664,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "left_arm_elevation_deg_div_180": {
+        "median": -0.09752069149558512,
+        "mad": 0.011351990446125768,
+        "lower": -0.1315766628339624,
+        "upper": -0.06346472015720782,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "right_arm_elevation_deg_div_180": {
+        "median": 0.1304924079420603,
+        "mad": 0.011284605128891026,
+        "lower": 0.09663859255538722,
+        "upper": 0.1643462233287334,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      },
+      "wrist_span_norm": {
+        "median": 0.3927951411636993,
+        "mad": 0.09379085979694313,
+        "lower": 0.11142256177286991,
+        "upper": 0.6741677205545287,
+        "sampleCount": 159,
+        "nominalRepetitionCount": 19
+      }
+    },
+    "seated_rest": {
+      "pelvis_height_above_ankles_norm": {
+        "median": 0.35056776623529073,
+        "mad": 0.06568230806378234,
+        "lower": 0.15352084204394373,
+        "upper": 0.5476146904266377,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_height_velocity_norm_per_s": {
+        "median": 0.05139263415863152,
+        "mad": 0.3957940207152171,
+        "lower": -1.1359894279870197,
+        "upper": 1.2387746963042827,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_offset_from_ankles_norm": {
+        "median": -0.014639376592302447,
+        "mad": 0.01053605024732734,
+        "lower": -0.046247527334284465,
+        "upper": 0.016968774149679573,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_velocity_norm_per_s": {
+        "median": -0.0007004902247845449,
+        "mad": 0.033193967385361844,
+        "lower": -0.10028239238087008,
+        "upper": 0.09888141193130098,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_deg_div_90": {
+        "median": -0.02156310700614963,
+        "mad": 0.02421117284384339,
+        "lower": -0.09419662553767981,
+        "upper": 0.05107041152538054,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_velocity_tanh": {
+        "median": 0.01237630731403564,
+        "mad": 0.07250756323119077,
+        "lower": -0.20514638237953667,
+        "upper": 0.22989899700760794,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_offset_norm": {
+        "median": -0.00868764472085623,
+        "mad": 0.00885911141131541,
+        "lower": -0.03868764472085623,
+        "upper": 0.02131235527914377,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_velocity_norm_per_s": {
+        "median": 0.0016275117136845727,
+        "mad": 0.031676709154174976,
+        "lower": -0.09340261574884036,
+        "upper": 0.0966576391762095,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_hip_angle_deg_div_180": {
+        "median": 0.14038412938600808,
+        "mad": 0.02153444924164765,
+        "lower": 0.07578078166106514,
+        "upper": 0.20498747711095103,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_hip_angle_deg_div_180": {
+        "median": 0.14037055148009744,
+        "mad": 0.03122648838907368,
+        "lower": 0.04669108631287641,
+        "upper": 0.23405001664731848,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "hip_angle_asymmetry_deg_div_180": {
+        "median": 0.009451387883721324,
+        "mad": 0.0059062960088859025,
+        "lower": -0.020548612116278675,
+        "upper": 0.03945138788372132,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_knee_angle_deg_div_180": {
+        "median": 0.13632951217078393,
+        "mad": 0.012922542956629937,
+        "lower": 0.09756188330089412,
+        "upper": 0.17509714104067375,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_knee_angle_deg_div_180": {
+        "median": 0.13592810459876536,
+        "mad": 0.017085051245760277,
+        "lower": 0.08467295086148453,
+        "upper": 0.1871832583360462,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "knee_angle_asymmetry_deg_div_180": {
+        "median": 0.009124118193688947,
+        "mad": 0.0057561413649569945,
+        "lower": -0.02087588180631105,
+        "upper": 0.039124118193688946,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_ankle_proxy_angle_deg_div_180": {
+        "median": 0.15232705795677787,
+        "mad": 0.009849953381228238,
+        "lower": 0.12232705795677787,
+        "upper": 0.18232705795677787,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_ankle_proxy_angle_deg_div_180": {
+        "median": 0.16597471735115077,
+        "mad": 0.01212754892157765,
+        "lower": 0.1295920705864178,
+        "upper": 0.20235736411588373,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "ankle_proxy_asymmetry_deg_div_180": {
+        "median": 0.012766172250903995,
+        "mad": 0.004929957455091216,
+        "lower": -0.017233827749096004,
+        "upper": 0.042766172250904,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "stance_width_norm": {
+        "median": 0.3794853245218969,
+        "mad": 0.08054796794046087,
+        "lower": 0.1378414207005143,
+        "upper": 0.6211292283432795,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "foot_center_offset_from_pelvis_norm": {
+        "median": 0.006557894450620054,
+        "mad": 0.01222938723315231,
+        "lower": -0.030130267248836873,
+        "upper": 0.043246056150076984,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_x_norm": {
+        "median": -0.11468976719010063,
+        "mad": 0.019951074684409806,
+        "lower": -0.17454299124333006,
+        "upper": -0.05483654313687121,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_y_norm": {
+        "median": 0.3339162336476542,
+        "mad": 0.057472510418638684,
+        "lower": 0.16149870239173816,
+        "upper": 0.5063337649035703,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_x_norm": {
+        "median": 0.16302843537058131,
+        "mad": 0.032136326318161504,
+        "lower": 0.0666194564160968,
+        "upper": 0.25943741432506584,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_y_norm": {
+        "median": 0.327709230803925,
+        "mad": 0.05718151765114837,
+        "lower": 0.15616467785047988,
+        "upper": 0.4992537837573701,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_speed_norm_per_s": {
+        "median": 0.1946596524012394,
+        "mad": 0.1344085196073982,
+        "lower": -0.20856590642095518,
+        "upper": 0.597885211223434,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_speed_norm_per_s": {
+        "median": 0.2058676726596348,
+        "mad": 0.1273149975875023,
+        "lower": -0.17607732010287214,
+        "upper": 0.5878126654221417,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_elbow_angle_deg_div_180": {
+        "median": 0.5783705663668202,
+        "mad": 0.03512805097559629,
+        "lower": 0.4729864134400313,
+        "upper": 0.6837547192936091,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_elbow_angle_deg_div_180": {
+        "median": 0.770835913908692,
+        "mad": 0.05219523234238066,
+        "lower": 0.61425021688155,
+        "upper": 0.927421610935834,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "left_arm_elevation_deg_div_180": {
+        "median": -0.09289495478404292,
+        "mad": 0.012131319035380804,
+        "lower": -0.12928891189018532,
+        "upper": -0.056500997677900504,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "right_arm_elevation_deg_div_180": {
+        "median": 0.1390925348442062,
+        "mad": 0.007260019532216708,
+        "lower": 0.1090925348442062,
+        "upper": 0.1690925348442062,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      },
+      "wrist_span_norm": {
+        "median": 0.21781301500550793,
+        "mad": 0.060258782708696626,
+        "lower": 0.037036666879418034,
+        "upper": 0.3985893631315978,
+        "sampleCount": 264,
+        "nominalRepetitionCount": 19
+      }
+    },
+    "standing_hold": {
+      "pelvis_height_above_ankles_norm": {
+        "median": 1.372708087254529,
+        "mad": 0.05444450253225486,
+        "lower": 1.2093745796577644,
+        "upper": 1.5360415948512935,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_height_velocity_norm_per_s": {
+        "median": 0.006080701423096569,
+        "mad": 0.2348197193860753,
+        "lower": -0.6983784567351293,
+        "upper": 0.7105398595813225,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_offset_from_ankles_norm": {
+        "median": -0.05696227590043423,
+        "mad": 0.026589324739282397,
+        "lower": -0.1367302501182814,
+        "upper": 0.022805698317412963,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "pelvis_view_plane_velocity_norm_per_s": {
+        "median": -0.0028177185192065934,
+        "mad": 0.038789364259268495,
+        "lower": -0.11918581129701208,
+        "upper": 0.1135503742585989,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_deg_div_90": {
+        "median": -0.0025249195803426477,
+        "mad": 0.014757839730442193,
+        "lower": -0.046798438771669226,
+        "upper": 0.04174859961098393,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_view_plane_tilt_velocity_tanh": {
+        "median": 0.005244262089643425,
+        "mad": 0.019918188836342644,
+        "lower": -0.05451030441938451,
+        "upper": 0.06499882859867136,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_offset_norm": {
+        "median": -0.003905933110589261,
+        "mad": 0.02284569325372235,
+        "lower": -0.07244301287175631,
+        "upper": 0.06463114665057779,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "trunk_lateral_velocity_norm_per_s": {
+        "median": 0.0067321186862270635,
+        "mad": 0.031048742576932402,
+        "lower": -0.08641410904457014,
+        "upper": 0.09987834641702426,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_hip_angle_deg_div_180": {
+        "median": 0.9007258293155854,
+        "mad": 0.02404214558265938,
+        "lower": 0.8285993925676073,
+        "upper": 0.9728522660635636,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_hip_angle_deg_div_180": {
+        "median": 0.8937202483069397,
+        "mad": 0.03231966201452663,
+        "lower": 0.7967612622633599,
+        "upper": 0.9906792343505196,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "hip_angle_asymmetry_deg_div_180": {
+        "median": 0.046007240367242255,
+        "mad": 0.020913751762293327,
+        "lower": -0.016734014919637732,
+        "upper": 0.10874849565412224,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_knee_angle_deg_div_180": {
+        "median": 0.7130771975513965,
+        "mad": 0.03628946122459287,
+        "lower": 0.6042088138776179,
+        "upper": 0.8219455812251751,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_knee_angle_deg_div_180": {
+        "median": 0.6356804072550136,
+        "mad": 0.030235111337172715,
+        "lower": 0.5449750732434955,
+        "upper": 0.7263857412665318,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "knee_angle_asymmetry_deg_div_180": {
+        "median": 0.09094771544347569,
+        "mad": 0.022512025566106472,
+        "lower": 0.02341163874515627,
+        "upper": 0.1584837921417951,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_ankle_proxy_angle_deg_div_180": {
+        "median": 0.2928051164296584,
+        "mad": 0.021566063376619038,
+        "lower": 0.22810692629980128,
+        "upper": 0.3575033065595155,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_ankle_proxy_angle_deg_div_180": {
+        "median": 0.31411306712871667,
+        "mad": 0.02386599248047344,
+        "lower": 0.24251508968729635,
+        "upper": 0.385711044570137,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "ankle_proxy_asymmetry_deg_div_180": {
+        "median": 0.022341499020643044,
+        "mad": 0.014013684522369022,
+        "lower": -0.01969955454646402,
+        "upper": 0.06438255258775011,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "stance_width_norm": {
+        "median": 1.0011317785289786,
+        "mad": 0.22640580092223184,
+        "lower": 0.3219143757622831,
+        "upper": 1.6803491812956741,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "foot_center_offset_from_pelvis_norm": {
+        "median": 0.04227416154003041,
+        "mad": 0.049876879604338994,
+        "lower": -0.10735647727298656,
+        "upper": 0.19190480035304738,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_x_norm": {
+        "median": -0.3330607487031023,
+        "mad": 0.023644823793480263,
+        "lower": -0.4039952200835431,
+        "upper": -0.2621262773226615,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_to_shoulder_y_norm": {
+        "median": 0.8868316997780613,
+        "mad": 0.03390448317333361,
+        "lower": 0.7851182502580605,
+        "upper": 0.9885451492980621,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_x_norm": {
+        "median": 0.37211275915180814,
+        "mad": 0.04360253386834445,
+        "lower": 0.24130515754677478,
+        "upper": 0.5029203607568415,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_to_shoulder_y_norm": {
+        "median": 0.9003982977804255,
+        "mad": 0.03611250482024575,
+        "lower": 0.7920607833196882,
+        "upper": 1.0087358122411627,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_wrist_speed_norm_per_s": {
+        "median": 0.12517072160343778,
+        "mad": 0.0899071142031267,
+        "lower": -0.14455062100594235,
+        "upper": 0.3948920642128179,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_wrist_speed_norm_per_s": {
+        "median": 0.16601889094058303,
+        "mad": 0.10369416623771925,
+        "lower": -0.1450636077725747,
+        "upper": 0.47710138965374077,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_elbow_angle_deg_div_180": {
+        "median": 0.6321934358675327,
+        "mad": 0.06353075701953281,
+        "lower": 0.4416011648089343,
+        "upper": 0.8227857069261312,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_elbow_angle_deg_div_180": {
+        "median": 0.8603275716948557,
+        "mad": 0.05410545117480292,
+        "lower": 0.698011218170447,
+        "upper": 1.0226439252192645,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "left_arm_elevation_deg_div_180": {
+        "median": -0.0820647409215828,
+        "mad": 0.008719698862293929,
+        "lower": -0.11206474092158279,
+        "upper": -0.052064740921582794,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "right_arm_elevation_deg_div_180": {
+        "median": 0.10140713735769323,
+        "mad": 0.01744449362965647,
+        "lower": 0.04907365646872382,
+        "upper": 0.15374061824666263,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      },
+      "wrist_span_norm": {
+        "median": 0.6855214979279336,
+        "mad": 0.14818201807932907,
+        "lower": 0.2409754436899464,
+        "upper": 1.130067552165921,
+        "sampleCount": 315,
+        "nominalRepetitionCount": 19
+      }
+    }
+  },
+  "profilePolicy": {
+    "method": "median_mad_envelope",
+    "madMultiplier": 3.0,
+    "minimumEnvelopeHalfWidth": 0.03,
+    "normalVariationPolicy": "inside_envelope_is_not_a_named_deviation"
+  },
+  "provenance": {
+    "labelUsedByEngine": false,
+    "rawLandmarksAccepted": false,
+    "profileInput": "completed_derived_30_feature_phase_rows"
+  }
+}

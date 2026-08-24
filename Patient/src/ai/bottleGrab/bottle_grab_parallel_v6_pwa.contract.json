@@ -1,0 +1,33 @@
+{
+  "schema": "physioai.bottle_grab_parallel_v6_pwa.v1",
+  "status": "experimental_mac_web_preview_not_deployable",
+  "counterMode": "parallel_geometry_first",
+  "geometryFirst": {
+    "ownerOf": "experimental.repCount",
+    "stages": ["collecting_rest", "armed", "grasped"],
+    "requiredPoseIndices": [11, 13, 15, 17, 19, 21],
+    "minimumHandScore": 0.5,
+    "requiresAnatomicalSide": "left",
+    "handWristAssociation": "distance(hand[0], pose[15]) <= max(0.18, armScale*0.85)",
+    "stableRestRows": 3,
+    "stableCloseRows": 3,
+    "stableReopenRows": 3,
+    "minimumSampleIntervalMs": 66,
+    "maximumObservationGapMs": 450,
+    "requiresBottleLift": false,
+    "requiresWristReturn": false,
+    "clinicalDecision": false
+  },
+  "phaseContext": {
+    "runtime": "bottle_grab_phasenet_v2_browser_static_f32_v1",
+    "inputShape": [30, 20],
+    "samplingHz": 15,
+    "windowStrideFrames": 3,
+    "classes": ["start_or_rest", "reach", "preshape", "grasp", "release", "return"],
+    "decisionScope": "phase_only",
+    "canOwnRepCount": false,
+    "canBlockGeometryCount": false
+  },
+  "source": "camera_macbook_web_preview",
+  "baseline4CueEngine": "bottle_grab_rule_wrap_hybrid_v1_baseline_4"
+}

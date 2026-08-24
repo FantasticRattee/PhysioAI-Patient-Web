@@ -34,7 +34,7 @@ export default function Logo({ size = 64, wordmark = true, inline = false }) {
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center' },
-  stack: { flexDirection: 'column', gap: 10 },
-  inline: { flexDirection: 'row', gap: 12 },
-  word: { fontWeight: '800', color: colors.ink, letterSpacing: -0.5 },
+  stack: { flexDirection: 'column', gap: 8 },
+  inline: { flexDirection: 'row', gap: 10 },
+  word: { fontWeight: '800', color: colors.ink, letterSpacing: -0.8 },
 });

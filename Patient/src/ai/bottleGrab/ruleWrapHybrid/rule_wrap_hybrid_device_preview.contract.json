@@ -1,0 +1,68 @@
+{
+  "$schema": "physioai.bottle_grab.rule_wrap_hybrid_device_preview.v1",
+  "status": "experimental_mac_web_preview_not_deployable",
+  "exerciseId": "bottle_grab",
+  "trackingProfile": "pose_plus_hand",
+  "anatomicalSide": "left",
+  "modelModuleId": "bottle_grab_rule_wrap_hybrid_v1_baseline_4",
+  "modelVersion": "1.9.0-dev-calibration-3-rule-wrap-hybrid-1",
+  "baselineNumber": 4,
+  "parentBaseline": "bottle_grab_calibration_3_core_baseline_3",
+  "sourceEngineSha256": "d2674a8d2084beec0359419dfdfd72a56b2efb4e4d2e02caa69f1b37b2de2813",
+  "policySha256": "8e72336b856d3ea5e4ab53bb2d31a4bb34cafdd5b9b6089e219c3c5bc9f63695",
+  "input": {
+    "source": "camera_macbook_web_preview",
+    "streams": ["MediaPipe Pose Landmarker 33 landmarks", "MediaPipe Hand Landmarker 21 landmarks"],
+    "runtime": "MediaPipe Tasks Vision WASM",
+    "delegate": "CPU",
+    "viewProfile": "front_anatomical_left",
+    "nativeUnmirrored": true,
+    "rollingHandFrames": 30,
+    "minimumHandFrames": 5
+  },
+  "outputs": {
+    "phase": true,
+    "tentativeFaultCue": true,
+    "score": false,
+    "formClass": false,
+    "repetitionDecision": true,
+    "repCount": true,
+    "physicalContactTruth": false,
+    "clinicalDecision": false
+  },
+  "repCounter": {
+    "modelId": "bottle_grab_rule_based_counter_v1",
+    "modelVersion": "1.0.0-dev",
+    "provenance": "experimental_browser_baseline4_rule_based_open_close_release_v1",
+    "semantics": "stable_open_rest -> stable_close -> stable_reopen",
+    "stableRowsPerEdge": 3,
+    "minimumHandScore": 0.5,
+    "maximumObservationGapMs": 450,
+    "minimumSampleIntervalMs": 66,
+    "anatomicalSide": "left",
+    "requiresBottleLift": false,
+    "requiresWristReturn": false,
+    "contactTruth": false,
+    "clinicalDecision": false
+  },
+  "privacy": {
+    "rawVideoPersisted": false,
+    "rawLandmarksPersisted": false,
+    "networkInference": false,
+    "networkUse": "CDN-only runtime/task bootstrap; frames stay in browser"
+  },
+  "claimBoundary": {
+    "runtimeAuthorized": false,
+    "browserAuthorized": false,
+    "appAuthorized": false,
+    "patientFacingApproved": false,
+    "correctnessDecision": false,
+    "physicalContactTruth": false,
+    "clinical": false,
+    "labelsUsedByEngine": false
+  },
+  "rollback": {
+    "native": "Calibration 3 Baseline #3 remains unchanged",
+    "web": "remove the web adapter and keep the browser lane unavailable"
+  }
+}

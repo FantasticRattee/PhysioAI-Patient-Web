@@ -30,7 +30,7 @@ export const STRINGS = {
 
     // Modes
     chooseMode: 'Choose mode',
-    modePractice: 'Patient Practice', modeAudio: 'Audio-Only', modeVisual: 'Visual-Only',
+    modePractice: 'Patient Practice', modeStandard: 'Standard', modeAudio: 'Audio-Only', modeVisual: 'Visual-Only',
     modeCapture: 'Therapist Setup', modeDash: 'Therapist Dashboard',
     hintPractice: 'Live session with real-time pose feedback',
     hintAudio: 'Voice-guided — for patients with visual impairment',
@@ -55,6 +55,7 @@ export const STRINGS = {
 
     // Exercises
     ex_shoulder: 'Shoulder flexion', ex_knee: 'Knee extension', ex_hip: 'Hip abduction',
+    ex_overhead_ceiling_reach: 'Overhead reach', ex_lateral_arm_raise: 'Lateral arm raise', ex_cross_body_shoulder_stretch: 'Cross-body shoulder stretch', ex_bottle_grab: 'Bottle grab', ex_sit_to_stand: 'Sit to Stand',
     ex_squat: 'Assisted squat', ex_balance: 'Single-leg balance',
     ex_rom_left_shoulder: 'Left shoulder ROM', ex_rom_right_shoulder: 'Right shoulder ROM',
     ex_rom_left_elbow: 'Left elbow ROM', ex_rom_right_elbow: 'Right elbow ROM',
@@ -76,6 +77,8 @@ export const STRINGS = {
     exd_rom_right_knee: 'Measure controlled range of motion for your right knee',
     exd_rom_back: 'Measure controlled range of motion for your back',
     exd_rom_neck: 'Measure controlled range of motion for your neck',
+    exd_bottle_grab: 'Experimental camera test — reach, grasp, release and return',
+    exd_sit_to_stand: 'Experimental pose-only camera test — stand up from a chair and sit down again',
 
     // Cues (generic)
     cueGetReady: 'Get ready', cueGoodForm: 'Great form — hold it', cueHoldSteady: 'Hold steady',
@@ -95,13 +98,15 @@ export const STRINGS = {
 
     // Audio mode
     audioTitle: 'Audio-Only', audioReady: 'Voice guidance ready',
-    audioIntro: 'I will guide you with my voice. Tap anywhere to start, tap again to pause.',
+    audioIntro: 'I will guide you with my voice. Keep your whole body in the camera frame.',
     tapToStart: 'Tap to start', tapToPause: 'Tap to pause', listening: 'Guiding you…',
-    spokenScore: 'Your form score is {n} percent',
+    spokenScore: 'Your form score is {n} percent', audioExitHint: 'Use Finish to end this session.',
 
     // Visual mode
     visualTitle: 'Visual-Only', visualIntro: 'Follow the on-screen cues. No sound needed.',
-    bigCue: 'CUE', matchTarget: 'Match the green target',
+    bigCue: 'CUE', matchTarget: 'Match the green target', visualSilent: 'Silent',
+    visualHold: 'Correct — hold', visualAdjust: 'Adjust this joint', visualReframe: 'Reposition in frame',
+    visualWaiting: 'Waiting for pose', directionIncrease: 'Increase angle', directionDecrease: 'Decrease angle',
 
     // Capture / setup
     captureTitle: 'Therapist Setup', patient: 'Patient', patients: 'Patients',
@@ -160,7 +165,7 @@ export const STRINGS = {
     patientMobile: 'ผู้ป่วย (มือถือ)', therapistWeb: 'นักกายภาพ (เว็บ)',
 
     chooseMode: 'เลือกโหมด',
-    modePractice: 'โหมดผู้ป่วย', modeAudio: 'โหมดเสียงอย่างเดียว', modeVisual: 'โหมดภาพอย่างเดียว',
+    modePractice: 'โหมดผู้ป่วย', modeStandard: 'มาตรฐาน', modeAudio: 'โหมดเสียงอย่างเดียว', modeVisual: 'โหมดภาพอย่างเดียว',
     modeCapture: 'โหมดนักกายภาพ', modeDash: 'แดชบอร์ดนักกายภาพ',
     hintPractice: 'เซสชันสดพร้อมฟีดแบคท่าทางแบบเรียลไทม์',
     hintAudio: 'นำทางด้วยเสียง — สำหรับผู้พิการทางสายตา',
@@ -183,6 +188,7 @@ export const STRINGS = {
     permissionHint: 'อนุญาตการใช้กล้องเมื่อระบบถาม ข้อมูลจะไม่ถูกอัปโหลด',
 
     ex_shoulder: 'ยกแขนขึ้น', ex_knee: 'เหยียดเข่า', ex_hip: 'กางสะโพก',
+    ex_overhead_ceiling_reach: 'เอื้อมแขนขึ้นเหนือศีรษะ', ex_lateral_arm_raise: 'กางแขนด้านข้าง', ex_cross_body_shoulder_stretch: 'ยืดไหล่พาดลำตัว', ex_bottle_grab: 'หยิบขวด', ex_sit_to_stand: 'ลุก-นั่งจากเก้าอี้',
     ex_squat: 'สควอทช่วยพยุง', ex_balance: 'ยืนขาเดียว',
     ex_rom_left_shoulder: 'ROM ไหล่ซ้าย', ex_rom_right_shoulder: 'ROM ไหล่ขวา',
     ex_rom_left_elbow: 'ROM ศอกซ้าย', ex_rom_right_elbow: 'ROM ศอกขวา',
@@ -204,6 +210,8 @@ export const STRINGS = {
     exd_rom_right_knee: 'วัดช่วงการเคลื่อนไหวของเข่าขวาแบบควบคุม',
     exd_rom_back: 'วัดช่วงการเคลื่อนไหวของหลังแบบควบคุม',
     exd_rom_neck: 'วัดช่วงการเคลื่อนไหวของคอแบบควบคุม',
+    exd_bottle_grab: 'โหมดทดลองจากกล้อง — เอื้อม หยิบ ปล่อย และกลับท่าเดิม',
+    exd_sit_to_stand: 'โหมดกล้องทดลองแบบใช้ท่าทางทั้งตัว — ลุกขึ้นจากเก้าอี้แล้วนั่งกลับ',
 
     cueGetReady: 'เตรียมตัว', cueGoodForm: 'ท่าดีมาก ค้างไว้', cueHoldSteady: 'ค้างไว้นิ่งๆ',
     cuePerfect: 'ดีเยี่ยม ทำต่อไป', cueAdjust: 'ปรับท่าทางของคุณ', cueNoPose: 'ถอยออกเพื่อให้เห็นตัวคุณ',
@@ -219,12 +227,14 @@ export const STRINGS = {
     limb_r_ankle: 'ข้อเท้าขวา', limb_l_ankle: 'ข้อเท้าซ้าย', limb_back: 'หลัง', limb_neck: 'คอ',
 
     audioTitle: 'โหมดเสียงอย่างเดียว', audioReady: 'พร้อมนำทางด้วยเสียง',
-    audioIntro: 'ฉันจะนำทางคุณด้วยเสียง แตะที่ใดก็ได้เพื่อเริ่ม แตะอีกครั้งเพื่อหยุด',
+    audioIntro: 'ฉันจะนำทางคุณด้วยเสียง โปรดให้กล้องเห็นร่างกายของคุณทั้งตัว',
     tapToStart: 'แตะเพื่อเริ่ม', tapToPause: 'แตะเพื่อหยุด', listening: 'กำลังนำทาง…',
-    spokenScore: 'คะแนนท่าของคุณคือ {n} เปอร์เซ็นต์',
+    spokenScore: 'คะแนนท่าของคุณคือ {n} เปอร์เซ็นต์', audioExitHint: 'กดเสร็จสิ้นเพื่อจบเซสชัน',
 
     visualTitle: 'โหมดภาพอย่างเดียว', visualIntro: 'ทำตามสัญญาณบนหน้าจอ ไม่ต้องใช้เสียง',
-    bigCue: 'คำแนะนำ', matchTarget: 'ทำให้ตรงกับเป้าหมายสีเขียว',
+    bigCue: 'คำแนะนำ', matchTarget: 'ทำให้ตรงกับเป้าหมายสีเขียว', visualSilent: 'ไม่มีเสียง',
+    visualHold: 'ถูกต้อง — ค้างไว้', visualAdjust: 'ปรับข้อต่อนี้', visualReframe: 'กลับเข้าสู่กรอบ',
+    visualWaiting: 'กำลังรอตรวจจับท่าทาง', directionIncrease: 'เพิ่มมุม', directionDecrease: 'ลดมุม',
 
     captureTitle: 'โหมดนักกายภาพ', patient: 'ผู้ป่วย', patients: 'ผู้ป่วย',
     referencePose: 'ท่าอ้างอิง', captureRef: 'บันทึกท่าอ้างอิง', recapture: 'บันทึกใหม่',

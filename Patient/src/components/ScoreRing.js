@@ -14,12 +14,12 @@ export default function ScoreRing({ value, size = 64, thickness = 6, color = col
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size}>
         <G rotation={-90} origin={`${size / 2}, ${size / 2}`}>
-          <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.line} strokeWidth={thickness} fill="none" />
+          <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surface3} strokeWidth={thickness} fill="none" />
           <Circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={thickness} fill="none"
                   strokeDasharray={`${c}`} strokeDashoffset={c * (1 - frac)} strokeLinecap="round" />
         </G>
       </Svg>
-      <Text style={{ position: 'absolute', fontWeight: '700', fontSize: size * 0.3, color: colors.ink }}>{shown}</Text>
+      <Text style={{ position: 'absolute', fontWeight: '800', fontSize: size * 0.3, color: colors.ink, fontVariant: ['tabular-nums'] }}>{shown}</Text>
     </View>
   );
 }

@@ -9,11 +9,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EXERCISES, getExercise, isBuiltin } from '../core/exercises.js';
+import { EXERCISES, getExercise, isBuiltin, getCatalog } from '../core/exercises.js';
 import { getPlanFull, getSessions } from '../core/store.js';
 import { getSession, logout } from '../core/auth.js';
 import { t, getLang } from '../core/i18n.js';
 import { colors } from '../core/theme.js';
+import BackButton from '../components/BackButton.js';
 
 const FALLBACK_PATIENT_ID = 'p1';
 
@@ -56,7 +57,9 @@ export default function HomeScreen({ navigation }) {
 
   const items = plan?.items || [];
   const planIds = items.map((i) => i.exerciseId);
-  const extras = EXERCISES.filter((e) => isBuiltin(e) && !planIds.includes(e.id));
+  // Extras a patient can try on their own = the established catalog plus the explicitly
+  // experimental Bottle Grab camera lane, minus what's already in the plan.
+  const extras = getCatalog().filter((e) => !planIds.includes(e.id));
   const regularExtras = extras.filter((e) => e.category !== 'health_rom');
   const romExtras = extras.filter((e) => e.category === 'health_rom');
   const doneCount = planIds.filter((id) => doneIds.has(id)).length;
@@ -97,7 +100,12 @@ export default function HomeScreen({ navigation }) {
       onPress={() => go(ex.id, undefined, 'extra', ex)}>
       <View style={styles.iconWrap}><Text style={styles.iconTxt}>＋</Text></View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{exerciseName(ex)}</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{exerciseName(ex)}</Text>
+          {ex.experimentalOnly ? <Text style={styles.experimentalBadge}>
+            {lang === 'th' ? 'ทดลอง' : 'Experimental'}
+          </Text> : null}
+        </View>
         <Text style={styles.hint}>{doseLine(ex)}</Text>
       </View>
       <Text style={styles.chev}>›</Text>
@@ -108,8 +116,11 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.headerRow}>
+          <BackButton navigation={navigation} />
           <Text style={styles.brand}>Physio<Text style={{ color: colors.brand }}>AI</Text></Text>
-          <Pressable onPress={doLogout} hitSlop={10}><Text style={styles.logout}>{t('logout')}</Text></Pressable>
+          <Pressable style={({ pressed }) => [styles.logoutButton, pressed && styles.pressed]} onPress={doLogout} hitSlop={10} accessibilityRole="button">
+            <Text style={styles.logout}>{t('logout')}</Text>
+          </Pressable>
         </View>
         {session?.name ? <Text style={styles.greeting}>{t('greeting', { name: session.name })}</Text> : null}
         {loadError ? <Text style={styles.errorBox}>{errorText}</Text> : null}
@@ -154,28 +165,31 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  brand: { fontSize: 18, fontWeight: '700', color: colors.ink },
-  logout: { color: colors.ink2, fontSize: 14, fontWeight: '600' },
-  greeting: { fontSize: 15, color: colors.ink2, marginTop: 8 },
-  errorBox: { color: colors.bad, backgroundColor: colors.surface, borderColor: colors.bad, borderWidth: 1, borderRadius: 12, padding: 12, marginTop: 14, fontSize: 14, lineHeight: 20 },
+  scroll: { width: '100%', maxWidth: 560, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 44 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  brand: { fontSize: 22, fontWeight: '800', letterSpacing: -0.7, color: colors.ink },
+  logoutButton: { minHeight: 36, justifyContent: 'center', paddingHorizontal: 12, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
+  logout: { color: colors.brand, fontSize: 13, fontWeight: '800' },
+  greeting: { fontSize: 16, color: colors.ink2, lineHeight: 22, marginTop: 4 },
+  errorBox: { color: colors.bad, backgroundColor: 'rgba(184,66,60,0.10)', borderColor: colors.bad, borderWidth: 1, borderRadius: 14, padding: 14, marginTop: 16, fontSize: 14, fontWeight: '600', lineHeight: 20 },
 
-  progCard: { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 14, marginTop: 14 },
+  progCard: { backgroundColor: colors.brand, borderColor: colors.brand, borderWidth: 1, borderRadius: 18, padding: 18, marginTop: 18 },
   progTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  progLabel: { fontSize: 13, fontWeight: '700', color: colors.ink },
-  progCount: { fontSize: 13, color: colors.brand, fontWeight: '600' },
-  progTrack: { height: 8, borderRadius: 6, backgroundColor: colors.surface3, overflow: 'hidden' },
-  progFill: { height: 8, borderRadius: 6, backgroundColor: colors.good },
+  progLabel: { fontSize: 13, fontWeight: '800', color: colors.inverse },
+  progCount: { fontSize: 13, color: 'rgba(245,241,232,0.72)', fontWeight: '700', fontVariant: ['tabular-nums'] },
+  progTrack: { height: 8, borderRadius: 6, backgroundColor: 'rgba(245,241,232,0.22)', overflow: 'hidden' },
+  progFill: { height: 8, borderRadius: 6, backgroundColor: colors.accent },
 
-  section: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: colors.ink3, fontWeight: '600', marginTop: 20, marginBottom: 8 },
-  sectionHint: { fontSize: 12, color: colors.ink3, marginTop: -4, marginBottom: 8 },
-  empty: { color: colors.ink2, fontSize: 14, paddingVertical: 8 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 10 },
-  pressed: { opacity: 0.7 },
-  iconWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.brandSoft, alignItems: 'center', justifyContent: 'center' },
-  iconTxt: { color: colors.brand, fontSize: 20 },
-  title: { fontSize: 16, fontWeight: '600', color: colors.ink },
-  hint: { fontSize: 13, color: colors.ink2, marginTop: 2 },
-  chev: { fontSize: 24, color: colors.ink3 },
+  section: { fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: colors.ink3, fontWeight: '800', marginTop: 24, marginBottom: 8 },
+  sectionHint: { fontSize: 12, color: colors.ink2, lineHeight: 18, marginTop: -2, marginBottom: 10 },
+  empty: { color: colors.ink2, fontSize: 14, lineHeight: 20, paddingVertical: 10 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 76, backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: 16, padding: 16, marginBottom: 12 },
+  pressed: { opacity: 0.78 },
+  iconWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.brandSoft, alignItems: 'center', justifyContent: 'center' },
+  iconTxt: { color: colors.brand, fontSize: 20, fontWeight: '700' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap' },
+  title: { fontSize: 16, fontWeight: '700', color: colors.ink },
+  experimentalBadge: { color: colors.brand, backgroundColor: colors.brandSoft, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3, fontSize: 9.5, fontWeight: '800', letterSpacing: 0.35, textTransform: 'uppercase', overflow: 'hidden' },
+  hint: { fontSize: 13, color: colors.ink2, marginTop: 3 },
+  chev: { fontSize: 24, color: colors.brand },
 });

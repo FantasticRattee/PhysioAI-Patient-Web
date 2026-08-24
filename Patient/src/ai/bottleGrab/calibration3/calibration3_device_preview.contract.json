@@ -1,0 +1,49 @@
+{
+  "schema": "physioai.bottle_grab.calibration_3_device_preview.v1",
+  "status": "experimental_local_device_preview_not_deployable",
+  "exerciseId": "bottle_grab",
+  "trackingProfile": "pose_plus_hand",
+  "anatomicalSide": "left",
+  "modelModuleId": "bottle_grab_model_module_v1_9_calibration_3",
+  "modelVersion": "1.9.0-dev-calibration-3",
+  "sourceModuleSha256": "b385e7a89f12c40d0c0a61174d2ab32bb6054d1bab1494e9aac630164a0106dd",
+  "sourceBundleSha256": "843d4b9bf4c9f9fdbc1570f7e7688835fd0996941d1d67f1c74eae5954ed8942",
+  "profileId": "bottle_grab_nominal_development_profile_v1_7",
+  "profileStatus": "development_train_only",
+  "profileSha256": "d3f8682e6bfcdbe0eed1cc4451d47d96c83a5b798c520c5b65573affc4c8128c",
+  "input": {
+    "source": "camera_live_device_preview",
+    "streams": ["MediaPipe BlazePose 33 landmarks", "MediaPipe Hand Landmarker 21 landmarks"],
+    "cadenceHz": 15,
+    "windowFrames": 90,
+    "minimumAssessableFrames": 15,
+    "restReference": "derived in-memory from positioning frames"
+  },
+  "outputs": {
+    "phase": true,
+    "tentativeFaultCue": true,
+    "score": false,
+    "formClass": false,
+    "repetitionDecision": false,
+    "repCount": false,
+    "clinicalDecision": false,
+    "tts": false
+  },
+  "privacy": {
+    "rawVideoPersisted": false,
+    "rawLandmarksPersisted": false,
+    "networkInference": false
+  },
+  "claimBoundary": {
+    "runtimeAuthorized": false,
+    "appAuthorized": false,
+    "patientFacingApproved": false,
+    "correctnessDecision": false,
+    "clinical": false
+  },
+  "rollback": {
+    "baseline1": "Comment Engine/browser V1.4 exact lock",
+    "baseline2": "Calibration 3 + Depth Sandbox Fusion V1",
+    "baseline3": "bottle_grab_calibration_3_core_baseline_3"
+  }
+}

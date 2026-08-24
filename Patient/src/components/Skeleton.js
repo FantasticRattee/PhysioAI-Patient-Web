@@ -14,6 +14,18 @@ const CONNECTIONS = [
   [24, 26], [26, 28], [28, 30], [30, 32], [28, 32],           // right leg
 ];
 
+// MediaPipe Hand Landmarker connections (21 points). Bottle Grab can render
+// this hand topology separately from the full-body Pose overlay; native and
+// web callers decide which accepted sources are visible for their route.
+const HAND_CONNECTIONS = [
+  [0, 1], [1, 2], [2, 3], [3, 4],
+  [0, 5], [5, 6], [6, 7], [7, 8],
+  [5, 9], [9, 10], [10, 11], [11, 12],
+  [9, 13], [13, 14], [14, 15], [15, 16],
+  [13, 17], [17, 18], [18, 19], [19, 20],
+  [0, 17],
+];
+
 // Two coordinate modes:
 //  • pixels=true  → `points` are ALREADY in view pixels (mapped by the camera's
 //    ViewCoordinator: rotation + front-camera mirror + cover crop handled). Draw as-is.
@@ -26,7 +38,13 @@ export default function Skeleton({ landmarks, points, pixels = false, width, hei
 
   const px = pixels ? (lm) => lm.x : (lm) => lm.x * width;
   const py = pixels ? (lm) => lm.y : (lm) => lm.y * height;
-  const vis = (i) => (data[i]?.visibility ?? 1) >= 0.5;
+  const vis = (i) => {
+    const point = data[i];
+    return Boolean(point)
+      && Number.isFinite(Number(point.x))
+      && Number.isFinite(Number(point.y))
+      && (point.visibility ?? 1) >= 0.5;
+  };
 
   return (
     <Svg width={width} height={height} style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
@@ -41,6 +59,26 @@ export default function Skeleton({ landmarks, points, pixels = false, width, hei
           <Circle key={'c' + i} cx={px(lm)} cy={py(lm)} r={4.5} fill={accent} />
         ) : null,
       )}
+    </Svg>
+  );
+}
+
+export function HandSkeleton({ points, width, height, tone = 'good' }) {
+  if (!Array.isArray(points) || !points.length || !width || !height) return null;
+  const [stroke, accent] = skeletonColors[tone] || skeletonColors.none;
+  const visible = (point) => point && Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y));
+
+  return (
+    <Svg width={width} height={height} style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
+      {HAND_CONNECTIONS.map(([a, b], i) =>
+        visible(points[a]) && visible(points[b]) ? (
+          <Line key={'hl' + i} x1={points[a].x} y1={points[a].y} x2={points[b].x} y2={points[b].y}
+            stroke={stroke} strokeWidth={4} strokeLinecap="round" />
+        ) : null,
+      )}
+      {points.map((point, i) => visible(point) ? (
+        <Circle key={'hc' + i} cx={point.x} cy={point.y} r={4} fill={accent} />
+      ) : null)}
     </Svg>
   );
 }

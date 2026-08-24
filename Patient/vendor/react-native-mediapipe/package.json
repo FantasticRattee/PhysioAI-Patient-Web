@@ -1,0 +1,34 @@
+{
+  "name": "react-native-mediapipe",
+  "version": "0.5.1",
+  "description": "A React Native Camera and Player for MediaPipe applications.",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": ["src", "lib", "android", "ios", "cpp", "*.podspec"],
+  "keywords": ["react-native", "ios", "android", "mediapipe"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdiddy77/react-native-mediapipe.git"
+  },
+  "author": "Charles Parker <charles@parkerfolk.net> (https://github.com/cdiddy77)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cdiddy77/react-native-mediapipe/issues"
+  },
+  "homepage": "https://github.com/cdiddy77/react-native-mediapipe#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-vision-camera": "*",
+    "react-native-worklets-core": "*"
+  },
+  "dependencies": {
+    "react-native-vector-icons": "^10.0.3"
+  }
+}

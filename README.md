@@ -140,18 +140,26 @@ The schema (`prisma/schema.prisma`) defines `User`, `Plan`, `Reference`, `Sessio
 `data` blob so API responses match the app contract 1:1. Use the Railway **public** URL when
 running `db:push` from your machine, and the **internal** URL when deployed on Railway.
 
-## Deployment configuration (inherited; V5 not promoted)
+## Deployment configuration — approved V7.3.3 PWA branch
 
-> These instructions describe the configuration copied from V4.1. App‑V5 still shares V4.1's
-> GitHub origin and is not the promoted application; do not push or deploy it as V5 until its
-> repository destination and promotion are explicitly approved.
+The approved release scope is the isolated branch
+`codex/app-v7-3-3-pwa-patient`; it does not promote or modify the native iOS
+lanes. Railway deploys from the repository root:
 
-- **Railway pattern — one service:** deployment from the repo root uses `railway.json` to build and run
-  `cd backend && npm run start`, which runs `prisma db push` then `node server.js`. The single
-  service serves the API *and* the Therapist web (`WEB_DIR` overrides the web path). Point
-  `EXPO_PUBLIC_API_BASE` (Patient) at this URL. The Therapist web resolves its API base
-  automatically (same-origin when served by this service); override it with
-  `window.PHYSIOAI_API_BASE` for a custom/cloud setup — there is no hard-coded URL in the code.
+- `npm run build` installs `backend/` and `Patient/`, then runs
+  `Patient`'s `expo export --platform web --output-dir dist` command.
+- `cd backend && npm run start` runs `prisma db push` then `node server.js`.
+- The one Railway service serves the exported Patient PWA at `/`, the API at
+  its existing endpoints (for example `/health` and `/auth/*`), and the
+  Therapist console at `/therapist/...`.
+- The PWA uses an explicit baked `EXPO_PUBLIC_API_BASE` when supplied; otherwise
+  a production browser build falls back to its same serving origin, so the
+  public PWA and API remain aligned without a hard-coded host name.
+
+The PWA export deliberately lives at `/`, not `/patient/`, because Expo emits
+root-absolute `/_expo/...` and `/assets/...` references. The Therapist web
+resolves its API base automatically (same-origin when served by this service);
+override it with `window.PHYSIOAI_API_BASE` for a custom/cloud setup.
 - **Vercel (alternative) — serverless:** `backend/vercel.json` → `api/index.js` runs the same
   Express app as a function. Set CORS and point clients' API base at the function URL.
 

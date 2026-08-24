@@ -95,6 +95,56 @@ export const EXERCISES = [
     target: 145, rest: 176, tol: 12,
     reps: 5, sets: 1, holdSec: 1.0, type: 'rep', movementPattern: 'unilateral',
   },
+  // ── Built-in exercise library ──
+  // The current development catalog is intentionally narrowed to Bottle Grab below;
+  // the other entries remain here so old plans and snapshots still resolve.
+  {
+    id: 'overhead_ceiling_reach', key: 'overhead_ceiling_reach', icon: 'body', accent: '#7BA88F',
+    label: 'Overhead reach', labelTh: 'เอื้อมแขนขึ้นเหนือศีรษะ',
+    primaryJoint: 'right_shoulder', bodyRegion: 'right_arm', dir: 'up',
+    target: 177, rest: 25, tol: 15,
+    reps: 10, sets: 3, holdSec: 1.5, type: 'rep',
+  },
+  {
+    id: 'lateral_arm_raise', key: 'lateral_arm_raise', icon: 'body', accent: '#7BA88F',
+    label: 'Lateral arm raise', labelTh: 'กางแขนด้านข้าง',
+    primaryJoint: 'left_shoulder', bodyRegion: 'left_arm', dir: 'up',
+    target: 100, rest: 24, tol: 15,
+    reps: 10, sets: 3, holdSec: 1.5, type: 'rep',
+  },
+  {
+    id: 'cross_body_shoulder_stretch', key: 'cross_body_shoulder_stretch', icon: 'body', accent: '#7BA88F',
+    label: 'Cross-body shoulder stretch', labelTh: 'ยืดไหล่พาดลำตัว',
+    primaryJoint: 'right_shoulder', bodyRegion: 'right_arm', dir: 'hold',
+    target: 71, rest: 20, tol: 15,
+    reps: 1, sets: 2, holdSec: 15, type: 'hold',
+  },
+  {
+    id: 'bottle_grab', key: 'bottle_grab', icon: 'body', accent: '#5B8E7D',
+    label: 'Bottle grab', labelTh: 'หยิบขวด',
+    primaryJoint: 'left_elbow', bodyRegion: 'left_arm', dir: 'up',
+    target: 105, rest: 55, tol: 18,
+    reps: 1, sets: 1, holdSec: 0.5, type: 'rep',
+    movementPattern: 'unilateral', anatomicalSide: 'left', trackingProfile: 'pose_plus_hand',
+    experimentalOnly: true,
+    modelId: 'bottle_grab_model_module_v1_9_calibration_3',
+    webModelId: 'bottle_grab_rule_wrap_hybrid_v1_baseline_4',
+    webModelVersion: '1.9.0-dev-calibration-3-rule-wrap-hybrid-1',
+    phaseModelId: 'bottlegrab_posehand_phasenet_v2_same_lineage_video_expansion_train_only',
+  },
+  {
+    id: 'sit_to_stand', key: 'sit_to_stand', icon: 'body', accent: '#7868A6',
+    label: 'Sit to Stand', labelTh: 'ลุก-นั่งจากเก้าอี้',
+    primaryJoint: 'right_knee', bodyRegion: 'full', dir: 'up',
+    target: 170, rest: 90, tol: 18,
+    reps: 5, sets: 1, holdSec: 0.5, type: 'rep',
+    movementPattern: 'bilateral', trackingProfile: 'pose_only',
+    experimentalOnly: true,
+    counterAuthority: 'parallel_geometry_counter',
+    modelId: 'sit_to_stand_phasenet_v1_train_only',
+    modelVersion: '1.0.0-train-only-native-export',
+    phaseModelId: 'sit_to_stand_phasenet_v1_train_only',
+  },
 ];
 
 // The seed library = built-in popular exercises (used for demo + patient-selectable
@@ -102,6 +152,13 @@ export const EXERCISES = [
 // plan-only (never shown to patients as free extras).
 for (const e of EXERCISES) e.source = e.source || 'builtin';
 export const isBuiltin = (ex) => (ex?.source ?? 'builtin') === 'builtin';
+
+// Fixed-flow: the current development catalog exposes two explicitly separate
+// browser experiments. Bottle Grab remains Pose+bottle/Hand-optional; Sit-to-
+// Stand is a Pose-only module with its own tracker and comment path.
+// Keep the full EXERCISES library above so existing plans/snapshots remain resolvable.
+export const CATALOG_IDS = ['bottle_grab', 'sit_to_stand'];
+export function getCatalog() { return CATALOG_IDS.map((id) => EXERCISES.find((e) => e.id === id)).filter(Boolean); }
 
 export const BODY_REGIONS = [
   { id: 'full', label: 'Whole Body', labelTh: 'ทั้งตัว' },

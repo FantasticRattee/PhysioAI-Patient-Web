@@ -50,9 +50,19 @@ npm run dev
 
 This serves the API and Therapist pages on the same origin (normally `http://localhost:3000`). `Therapist/shared/core/api.js` uses an explicit `window.PHYSIOAI_API_BASE` override when set, otherwise same-origin for HTTP(S) pages; do not reintroduce a hard-coded local port.
 
-Patient uses `EXPO_PUBLIC_API_BASE` at bundle time and falls back to local/demo storage only under its documented development conditions. Run the rollback/comparison lane with `cd Patient && npm install`, then `npx expo run:ios`, `npm start`, or `npx expo start --web` as appropriate. The existing Expo native route uses the tracked `vendor/react-native-mediapipe/` bridge; the approved `Patient/native-ios/` migration uses no React Native bridge. For the native lane, run `xcodegen generate`, `/opt/homebrew/bin/pod install`, then the Simulator-first `xcodebuild ... test` command in [`Patient/native-ios/README.md`](../Patient/native-ios/README.md). The Bottle Grab web route uses `MacCamera.web.js` plus MediaPipe Tasks Vision WASM and Baseline #4. Run `postinstall` before Expo CocoaPods/native builds; never treat the two camera lanes as the same runtime evidence.
+Patient uses `EXPO_PUBLIC_API_BASE` at bundle time and falls back to local/demo storage only under its documented development conditions. Run the rollback/comparison lane with `cd Patient && npm install`, then `npx expo run:ios`, `npm start`, or `npx expo start --web` as appropriate. The existing Expo native route uses the tracked `vendor/react-native-mediapipe/` bridge; the approved `Patient/native-ios/` migration uses no React Native bridge. For the native lane, run `xcodegen generate`, `/opt/homebrew/bin/pod install`, then the Simulator-first `xcodebuild ... test` command in [`Patient/native-ios/README.md`](../Patient/native-ios/README.md). The PWA Bottle Grab route uses `MacCamera.web.js` plus MediaPipe Tasks Vision WASM, the generic EfficientDet-Lite0 bottle detector, Pose proximity counting, Baseline #4 cue rules, optional Hand comments, and PhaseNet V2 context; V7.3.3 adds local detector diagnostics without changing count authority. The PWA Sit-to-Stand route uses `SitToStandCamera.web.js`, Pose Full only, a 30×30 feature/QC adapter, a geometry-owned count, and separate causal-TCN phase/comment context. Both routes remain experimental source/bundle integrations; a real browser-camera/person-in-frame run remains a separate gate. Run `postinstall` before Expo CocoaPods/native builds; never treat native and PWA lanes as the same runtime evidence.
 
-Railway is the primary deployment pattern inherited from V4.1. If V5 is deployed, [railway.json](../railway.json) expects the App-V5 repository root, then runs `cd backend && npm run start`; it must retain access to both `backend/` and `Therapist/`. `npm run start` includes `prisma db push`, so treat deployment/schema changes deliberately. Vercel files are an alternative serverless path, not the active default. This copied repository still points at the same GitHub origin as V4.1, so do not push or deploy it as V5 without an explicit repository/promotion decision.
+Railway is the primary deployment pattern inherited from V4.1. The explicitly
+approved V7.3.3 PWA release branch is `codex/app-v7-3-3-pwa-patient`.
+[railway.json](../railway.json) expects the App-V5 repository root, runs root
+`npm run build` to export `Patient/dist`, then runs `cd backend && npm run
+start`; Express serves the PWA at `/`, preserves the API endpoints, and keeps
+the Therapist console at `/therapist/...`. The root PWA route is intentional:
+Expo web exports reference root-absolute assets. `npm run start` includes
+`prisma db push`, so treat deployment/schema changes deliberately. This
+authorization is PWA-hosting only; it does not promote or alter the native iOS
+lanes, frozen model baselines, or clinical status. Vercel files are an
+alternative serverless path, not the active default.
 
 ## Data and trust boundaries
 

@@ -24,7 +24,7 @@ module.exports = {
       rootDir: __dirname,
       testMatch: ['<rootDir>/patient/**/*.test.js'],
       setupFiles: ['<rootDir>/setup/patient.setup.js'],
-      transform: { '^.+\\.[jt]sx?$': 'babel-jest' },
+      transform: { '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest' },
       moduleNameMapper: {
         '^@react-native-async-storage/async-storage$': '<rootDir>/mocks/asyncStorageMock.js',
         '^expo-speech$': '<rootDir>/mocks/expoSpeechMock.js',
@@ -36,7 +36,7 @@ module.exports = {
       rootDir: __dirname,
       testMatch: ['<rootDir>/therapist/**/*.test.js'],
       setupFiles: ['<rootDir>/setup/therapist.setup.js'],
-      transform: { '^.+\\.[jt]sx?$': 'babel-jest' },
+      transform: { '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest' },
     },
   ],
 };

@@ -19,6 +19,16 @@
       "package": "com.physioai.patient",
       "permissions": ["android.permission.CAMERA"]
     },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "PhysioAI Patient",
+      "shortName": "PhysioAI",
+      "lang": "th",
+      "themeColor": "#F5F1E8",
+      "backgroundColor": "#F5F1E8",
+      "description": "AI physiotherapy practice for patients"
+    },
     "plugins": [
       [
         "react-native-vision-camera",

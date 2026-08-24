@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema": "physioai.bottle_grab.rule_wrap_hybrid_policy.v1",
+  "engineId": "bottle_grab_rule_wrap_hybrid_v1",
+  "version": "1.9.0-dev-calibration-3-rule-wrap-hybrid-1",
+  "baseline": {
+    "number": 4,
+    "id": "bottle_grab_rule_wrap_hybrid_v1_baseline_4",
+    "status": "frozen_development_baseline"
+  },
+  "parent": {
+    "engineId": "bottle_grab_fault_engine_bundle_v1_9_calibration_3",
+    "version": "1.9.0-dev-calibration-3",
+    "baseline": "Calibration 3 Core Baseline #3"
+  },
+  "evidenceThresholds": {
+    "pinkyIndexGapMinDegrees": 12,
+    "visibleFingerSpreadMinDegrees": 10,
+    "minimumVisibleAssessableFingers": 3,
+    "minimumIndependentSignalFamilies": 2,
+    "minimumSignalScore": 0.75,
+    "minimumPersistence": 0.65,
+    "preserveParentFingerOnUnqualified": true
+  },
+  "viewProfiles": {
+    "side_anatomical_left": {
+      "visibleFingerIds": ["index", "middle", "ring", "pinky"],
+      "thumbRole": "optional_when_occluded"
+    },
+    "front_anatomical_left": {
+      "visibleFingerIds": ["thumb", "index", "middle", "ring", "pinky"],
+      "thumbRole": "required_when_reliable"
+    }
+  },
+  "calibration": {
+    "calibrationRecords": ["2952", "3046", "3051"],
+    "validationRecords": ["3047", "3052", "3054", "3114-3120"],
+    "holdoutRecords": ["3055", "3056"],
+    "unseenRecords": "external Unseen-test labels 3125-3186",
+    "unseenUsedForTuning": false
+  },
+  "claimBoundary": {
+    "runtimeAuthorized": false,
+    "browserAuthorized": false,
+    "appAuthorized": false,
+    "correctnessDecision": false,
+    "physicalContactTruth": false,
+    "clinical": false,
+    "labelsUsedByEngine": false
+  }
+}

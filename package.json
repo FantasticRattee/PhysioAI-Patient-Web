@@ -4,7 +4,7 @@
   "private": true,
   "description": "PhysioAI — single deployable service: Express + Prisma API that also serves the Therapist web (../Therapist) with a MediaPipe-WASM-friendly CSP. Deploy on Railway from the repo ROOT (leave Root Directory blank) so both backend/ and Therapist/ are in the container.",
   "scripts": {
-    "build": "cd backend && npm install",
+    "build": "npm --prefix backend install && npm --prefix Patient install && npm --prefix Patient run export:web",
     "start": "cd backend && npm run start"
   },
   "engines": {

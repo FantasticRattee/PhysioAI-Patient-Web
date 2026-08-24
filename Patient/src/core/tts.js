@@ -16,6 +16,7 @@ class TTS {
     this.enabled = true;
     this._lastId = null;
     this._lastAt = 0;
+    this._priorityUntil = 0;
     this._voice = {}; // { th: <identifier>, en: <identifier> } — filled async
     this._loadVoices();
   }
@@ -36,16 +37,51 @@ class TTS {
 
   setEnabled(v) { this.enabled = !!v; if (!v) this.cancel(); }
 
-  cancel() { try { Speech.stop(); } catch {} }
+  cancel() {
+    this._priorityUntil = 0;
+    try { Speech.stop(); } catch {}
+  }
 
   speakNow(text, lang = 'th') {
-    if (!this.enabled || !text) return;
+    if (!this.enabled || !text || Date.now() < this._priorityUntil) return false;
+    return this._speak(text, lang);
+  }
+
+  _speak(text, lang = 'th') {
     try {
       Speech.stop();
-      const opts = { language: VOICE_LANG[lang] || 'en-US', rate: lang === 'th' ? 0.98 : 1.0 };
+      // Expo Speech's iOS default uses the application's audio session.  The
+      // real-device screenshot showed the iPhone in silent mode, so that
+      // session can legally suppress every cue even though Speech.speak()
+      // returns successfully. Ask AVSpeechSynthesizer for its own playback
+      // session; this keeps exercise cues audible without changing the camera
+      // session or sending audio off-device.
+      const opts = {
+        language: VOICE_LANG[lang] || 'en-US',
+        rate: lang === 'th' ? 0.98 : 1.0,
+        useApplicationAudioSession: false,
+        onError: (error) => console.warn('PhysioAI TTS error', error?.message || error),
+      };
       if (this._voice[lang]) opts.voice = this._voice[lang]; // lock onto the picked Thai voice
       Speech.speak(String(text), opts);
-    } catch {}
+      return true;
+    } catch { return false; }
+  }
+
+  // A Therapist correction has temporary priority over the regular AI cue loop.
+  // Nothing is recorded or streamed: the received structured text is spoken locally.
+  speakPriority(text, lang = 'th', lockMs = 5000) {
+    if (!this.enabled || !text) return false;
+    this._priorityUntil = Date.now() + Math.max(0, Number(lockMs) || 0);
+    return this._speak(text, lang);
+  }
+
+  // Safety, countdown, and completion announcements outrank a Therapist cue.
+  // The existing priority window remains active so routine AI chatter does not
+  // immediately interrupt this essential message.
+  speakEssential(text, lang = 'th') {
+    if (!this.enabled || !text) return false;
+    return this._speak(text, lang);
   }
 
   // Debounced per-id so the same cue isn't repeated within `minGap` ms.
@@ -55,6 +91,14 @@ class TTS {
     if (this._lastId === id && now - this._lastAt < minGap) return;
     this._lastId = id; this._lastAt = now;
     this.speakNow(text, lang);
+  }
+
+  sayEssential(id, text, lang = 'th', minGap = 1500) {
+    if (!this.enabled || !text) return;
+    const now = Date.now();
+    if (this._lastId === id && now - this._lastAt < minGap) return;
+    this._lastId = id; this._lastAt = now;
+    this.speakEssential(text, lang);
   }
 }
 

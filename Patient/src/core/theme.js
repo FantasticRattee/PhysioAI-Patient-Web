@@ -1,10 +1,13 @@
-// PhysioAI · Version-2 — design tokens (ported from V1 theme.css).
+// PhysioAI · Design 4 — warm clinical visual tokens.
+//
+// Keep these tokens presentation-only: they are shared by every Patient screen
+// so the visual refresh never changes navigation, camera, or session behaviour.
 export const colors = {
-  bg: '#F5F1E8', surface: '#FFFFFF', surface2: '#FAF7F0', surface3: '#EFE9DD',
-  line: '#E5DFD3',
-  ink: '#1F2937', ink2: '#6B7280', ink3: '#9CA3AF', inverse: '#FBFAF5',
-  brand: '#2F5D50', brandSoft: '#E3ECE7', accent: '#7BA88F',
-  good: '#2F5D50', warn: '#9C7344', bad: '#8C4F40',
+  bg: '#F5F1E8', surface: '#FBF7EF', surface2: '#F3EEE3', surface3: '#E9E1D3',
+  line: '#DED6C7',
+  ink: '#2A2823', ink2: '#6B655A', ink3: '#A79E8C', inverse: '#F5F1E8',
+  brand: '#25443B', brandSoft: '#EAF1EC', accent: '#7BA88F',
+  good: '#2F5D50', warn: '#9C7344', bad: '#B8423C',
 };
 
 export const scoreTone = (score) =>
@@ -13,10 +16,11 @@ export const scoreTone = (score) =>
 export const toneColor = (tone) =>
   ({ good: colors.good, warn: colors.warn, bad: colors.bad, none: colors.ink3 }[tone] || colors.ink3);
 
-// Skeleton stroke / joint colors per tone (matches V1 runner).
+// Skeleton stroke / joint colors per tone. The warm semantic error retains
+// contrast over a live camera while the positive tone matches the new brand.
 export const skeletonColors = {
-  good: ['#2F5D50', '#7BA88F'],
+  good: ['#25443B', '#7BA88F'],
   warn: ['#9C7344', '#C8955A'],
-  bad: ['#8C4F40', '#B86C5A'],
+  bad: ['#B8423C', '#D98C84'],
   none: ['#8A8275', '#8A8275'],
 };

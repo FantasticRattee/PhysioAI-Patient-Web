@@ -66,6 +66,18 @@ describe('API_BASE / isCloud', () => {
     expect(fresh.API_BASE).toBe('');
     expect(fresh.isCloud()).toBe(false);
   });
+
+  it('uses the serving origin for a production PWA when no base is baked in', () => {
+    jest.resetModules();
+    process.env.EXPO_PUBLIC_API_BASE = '';
+    const previousWindow = global.window;
+    global.window = { location: { origin: 'https://patient.example.com' } };
+    const fresh = require(MOD_PATH);
+    global.window = previousWindow;
+
+    expect(fresh.API_BASE).toBe('https://patient.example.com');
+    expect(fresh.isCloud()).toBe(true);
+  });
 });
 
 describe('apiConfigError', () => {

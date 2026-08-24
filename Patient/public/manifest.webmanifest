@@ -1,0 +1,26 @@
+{
+  "name": "PhysioAI Patient",
+  "short_name": "PhysioAI",
+  "description": "AI physiotherapy practice for patients",
+  "lang": "th",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#F5F1E8",
+  "background_color": "#F5F1E8",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

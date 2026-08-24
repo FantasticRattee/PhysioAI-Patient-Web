@@ -310,9 +310,32 @@ app.post('/sessions', requireAuth, async (req, res) => {
   }
 });
 
-/* ── static Therapist web (Node-host mode) ───────────────── */
+/* ── static PWA + Therapist web (Node-host mode) ─────────── */
+// Railway builds the Patient Expo web export into Patient/dist. Its asset URLs
+// are root-relative, so mount it at `/` and preserve Therapist at
+// `/therapist/...` / `/shared/...` through the existing static tree.
+const PATIENT_WEB_DIR = process.env.PATIENT_WEB_DIR || path.join(__dirname, '..', 'Patient', 'dist');
+const PATIENT_INDEX = path.join(PATIENT_WEB_DIR, 'index.html');
 const WEB_DIR = process.env.WEB_DIR || path.join(__dirname, '..', 'Therapist');
+
+if (fs.existsSync(PATIENT_INDEX)) {
+  app.use(express.static(PATIENT_WEB_DIR, { extensions: ['html'] }));
+}
 app.use(express.static(WEB_DIR, { extensions: ['html'] }));
+
+if (fs.existsSync(PATIENT_INDEX)) {
+  const API_PATH_PREFIXES = [
+    '/auth', '/plans', '/references', '/sessions', '/patients',
+    '/exercise-requests', '/live-assist', '/health',
+  ];
+  app.get('*', (req, res, next) => {
+    const isApiPath = API_PATH_PREFIXES.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`));
+    const isTherapistPath = req.path === '/therapist' || req.path.startsWith('/therapist/')
+      || req.path === '/shared' || req.path.startsWith('/shared/');
+    if (isApiPath || isTherapistPath || !req.accepts('html')) return next();
+    return res.sendFile(PATIENT_INDEX);
+  });
+}
 
 function start() {
   const port = process.env.PORT || 3000;

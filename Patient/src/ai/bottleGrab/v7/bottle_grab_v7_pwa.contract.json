@@ -1,0 +1,32 @@
+{
+  "schema": "physioai.bottle_grab_v7_pwa.v1",
+  "moduleId": "bottle_grab_v7",
+  "moduleVersion": "1.0.0-dev-v7-3-3-diagnostics",
+  "diagnosticsVersion": "7.3.3",
+  "exerciseId": "bottle_grab",
+  "decisionScope": "experimental_local_device_proximity_only",
+  "counterMode": "bottle_detector_proximity",
+  "engines": [
+    "bottle_grab_v7_bottle_detector",
+    "mediapipe_pose_full_v1",
+    "pose_hand_proxy_v1",
+    "bottle_grab_v7_pose_proximity_counter_v1",
+    "hand_finger_quality_comment_v1",
+    "bottle_grab_phasenet_v2_context_v1"
+  ],
+  "counterAuthority": "bottle_grab_v7_pose_proximity_counter_v1",
+  "phaseAuthority": "none_context_only",
+  "handAuthority": "finger_comment_only",
+  "detector": {
+    "asset": "efficientdet_lite0.tflite",
+    "sha256": "40338edf5ec70d43e318b0a716a84d4564cd1802759a7a07170c7e43796dbf58",
+    "labelAllowlist": ["bottle"],
+    "minimumScore": 0.35,
+    "ambiguityMargin": 0.05,
+    "roiMargin": 0.02,
+    "maximumDetectionAgeMs": 350,
+    "status": "experimental_generic_coco_baseline"
+  },
+  "cloudInference": false,
+  "rollback": "App V6/V6.1 PWA branch"
+}

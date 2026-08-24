@@ -6,9 +6,17 @@
 // creating mock users if the API URL is missing.
 const flagOn = (value) => ['1', 'true', 'yes', 'on'].includes(String(value || '').toLowerCase());
 
-export const API_BASE = (process.env.EXPO_PUBLIC_API_BASE || '').replace(/\/+$/, '');
 export const IS_DEV = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
 export const IS_PRODUCTION = !IS_DEV;
+const configuredBase = (process.env.EXPO_PUBLIC_API_BASE || '').replace(/\/+$/, '');
+// Railway serves the production PWA and API from the same origin. Keep native
+// builds explicit, but let a web export with no baked URL call that origin.
+const servingOrigin = !IS_DEV
+  && typeof window !== 'undefined'
+  && /^https?:\/\//.test(String(window.location?.origin || ''))
+  ? String(window.location.origin).replace(/\/+$/, '')
+  : '';
+export const API_BASE = configuredBase || servingOrigin;
 export const DEMO_ENABLED = flagOn(process.env.EXPO_PUBLIC_ENABLE_DEMO) || (IS_DEV && !API_BASE);
 
 export const isCloud = () => !!API_BASE;

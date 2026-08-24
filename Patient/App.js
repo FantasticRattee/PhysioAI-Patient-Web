@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import WelcomeScreen from './src/screens/WelcomeScreen.js';
@@ -14,6 +15,22 @@ import { loadLang } from './src/core/i18n.js';
 import { getSession } from './src/core/auth.js';
 
 const Stack = createNativeStackNavigator();
+
+// React Navigation's web history integration keeps the browser Back button
+// aligned with the in-app BackButton. Native builds retain their existing
+// stack behavior and do not receive web URLs.
+const webLinking = {
+  prefixes: [],
+  config: {
+    screens: {
+      Welcome: '',
+      Login: 'login',
+      Register: 'register',
+      Home: 'home',
+      Practice: 'practice',
+    },
+  },
+};
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -31,7 +48,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <NavigationContainer>
+      <NavigationContainer linking={Platform.OS === 'web' ? webLinking : undefined}>
         <Stack.Navigator initialRouteName={initial} screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />

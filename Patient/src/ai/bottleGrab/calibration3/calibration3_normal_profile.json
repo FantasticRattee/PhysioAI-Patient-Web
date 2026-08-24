@@ -1,0 +1,189 @@
+{
+  "schema": "physioai.bottle_grab.normal_manifold_profile.v1_7",
+  "profileId": "bottle_grab_nominal_development_profile_v1_7",
+  "status": "development_train_only",
+  "nominalRepetitionCount": 16,
+  "sourceLineages": [
+    "0d4f8bfe71c301dde4abaee5e7a222885da33681229405aacc8973cfd551612d",
+    "74572f4decf66e1a08c9e80e35ffa3a76323a29605227b188336ebf7f86697f3",
+    "4df6694a3c23da17b2dc2367194f278733c61e211844962df12a506e8d9e696f"
+  ],
+  "regions": {
+    "hand_finger": {
+      "cueId": "BG_REF_WRAP_FINGERS_MORE",
+      "observationTag": "BG_OBS_GRASP_CLOSURE_BELOW_REFERENCE",
+      "direction": "hand_configuration_deviation",
+      "featureIds": [
+        "mean_finger_flexion_p50",
+        "mean_finger_flexion_p90",
+        "thumb_index_aperture_p10",
+        "thumb_index_aperture_p50",
+        "index_mcp_flexion_p50",
+        "index_pip_flexion_p50",
+        "index_dip_flexion_p50"
+      ],
+      "features": {
+        "mean_finger_flexion_p50": {
+          "center": 33.62259634004752,
+          "scale": 7.273072022723218,
+          "lower": 24.464025782920118,
+          "upper": 39.35408709482746,
+          "sampleCount": 16
+        },
+        "mean_finger_flexion_p90": {
+          "center": 46.326818408416,
+          "scale": 3.532385478590244,
+          "lower": 37.86942758993625,
+          "upper": 50.41769573897312,
+          "sampleCount": 16
+        },
+        "thumb_index_aperture_p10": {
+          "center": 0.22264671088413335,
+          "scale": 0.32472120787708997,
+          "lower": 0.16342510103339214,
+          "upper": 0.6810930333427869,
+          "sampleCount": 16
+        },
+        "thumb_index_aperture_p50": {
+          "center": 0.5397352348689501,
+          "scale": 0.2106303548221274,
+          "lower": 0.4453934951043296,
+          "upper": 0.8530506010420678,
+          "sampleCount": 16
+        },
+        "index_mcp_flexion_p50": {
+          "center": 30.246506075361523,
+          "scale": 5.358953607292128,
+          "lower": 24.587934938561666,
+          "upper": 40.13389566256252,
+          "sampleCount": 16
+        },
+        "index_pip_flexion_p50": {
+          "center": 47.80254861366644,
+          "scale": 3.505918220837987,
+          "lower": 42.31729743838435,
+          "upper": 51.47207395235481,
+          "sampleCount": 16
+        },
+        "index_dip_flexion_p50": {
+          "center": 19.607961674826868,
+          "scale": 2.3328415029774434,
+          "lower": 13.331913667384512,
+          "upper": 24.597780845201022,
+          "sampleCount": 16
+        }
+      }
+    },
+    "shoulder_upper_arm": {
+      "cueId": "BG_REF_RELAX_SHOULDER",
+      "observationTag": "BG_OBS_WORKING_SHOULDER_ELEVATION_ABOVE_REFERENCE",
+      "direction": "elevated",
+      "featureIds": [
+        "shoulder_delta_p10",
+        "shoulder_delta_p50",
+        "shoulder_delta_p90",
+        "shoulder_ear_distance_p10",
+        "shoulder_ear_distance_p50",
+        "shoulder_ear_distance_p90"
+      ],
+      "features": {
+        "shoulder_delta_p10": {
+          "center": -0.012166998488121774,
+          "scale": 0.04256037645042251,
+          "lower": -0.1194819743532528,
+          "upper": 0.0243970587804571,
+          "sampleCount": 16
+        },
+        "shoulder_delta_p50": {
+          "center": 0.003112277797290137,
+          "scale": 0.04485040647910806,
+          "lower": -0.0740176820500264,
+          "upper": 0.0528998944675409,
+          "sampleCount": 16
+        },
+        "shoulder_delta_p90": {
+          "center": 0.023829633162270818,
+          "scale": 0.04967889264455186,
+          "lower": -0.047746042371418974,
+          "upper": 0.07024390284365417,
+          "sampleCount": 16
+        },
+        "shoulder_ear_distance_p10": {
+          "center": 0.42764150875424634,
+          "scale": 0.032371038677846145,
+          "lower": 0.3784634951598675,
+          "upper": 0.44809600811710426,
+          "sampleCount": 16
+        },
+        "shoulder_ear_distance_p50": {
+          "center": 0.4599412253736732,
+          "scale": 0.01,
+          "lower": 0.400425590277768,
+          "upper": 0.470448485385617,
+          "sampleCount": 16
+        },
+        "shoulder_ear_distance_p90": {
+          "center": 0.4809390649491504,
+          "scale": 0.020641148713182383,
+          "lower": 0.46014244622626616,
+          "upper": 0.5617562103642822,
+          "sampleCount": 16
+        }
+      }
+    },
+    "trunk": {
+      "cueId": "BG_REF_KEEP_TRUNK_STILL",
+      "observationTag": "BG_OBS_TRUNK_MOTION_ABOVE_REFERENCE",
+      "direction": "excess_motion",
+      "featureIds": [
+        "trunk_change_p50",
+        "trunk_change_p90",
+        "trunk_lean_p50",
+        "trunk_lean_p90"
+      ],
+      "features": {
+        "trunk_change_p50": {
+          "center": 0.20031434455522884,
+          "scale": 0.12893008159878624,
+          "lower": 0.04510911237718241,
+          "upper": 0.25694051154463815,
+          "sampleCount": 16
+        },
+        "trunk_change_p90": {
+          "center": 0.26758625996009644,
+          "scale": 0.12392989585881853,
+          "lower": 0.08640671998191907,
+          "upper": 0.29534152209928305,
+          "sampleCount": 16
+        },
+        "trunk_lean_p50": {
+          "center": 8.939451637226398,
+          "scale": 3.2085649834792553,
+          "lower": 6.6815540758973935,
+          "upper": 12.334154370968013,
+          "sampleCount": 16
+        },
+        "trunk_lean_p90": {
+          "center": 11.592200068360695,
+          "scale": 3.4273205450920723,
+          "lower": 9.23229139592921,
+          "upper": 15.168460932115108,
+          "sampleCount": 16
+        }
+      }
+    }
+  },
+  "policy": {
+    "minRepetitionFrames": 15,
+    "minFeaturesBeyond": 2,
+    "robustZThreshold": 3.5,
+    "unknownDeviation": "review_required_no_named_cue"
+  },
+  "claimBoundary": {
+    "runtimeAuthorized": false,
+    "browserAuthorized": false,
+    "appAuthorized": false,
+    "correctnessVerdict": false,
+    "clinical": false
+  }
+}

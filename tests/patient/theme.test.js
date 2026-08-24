@@ -30,13 +30,20 @@ describe('theme.colors palette', () => {
     });
   });
 
-  it('has the exact expected tone colors', () => {
+  it('uses the approved Design 4 warm clinical palette', () => {
+    expect(colors.bg).toBe('#F5F1E8');
+    expect(colors.surface).toBe('#FBF7EF');
+    expect(colors.surface2).toBe('#F3EEE3');
+    expect(colors.ink).toBe('#2A2823');
+    expect(colors.ink2).toBe('#6B655A');
+    expect(colors.ink3).toBe('#A79E8C');
+    expect(colors.inverse).toBe('#F5F1E8');
+    expect(colors.brand).toBe('#25443B');
+    expect(colors.brandSoft).toBe('#EAF1EC');
+    expect(colors.accent).toBe('#7BA88F');
     expect(colors.good).toBe('#2F5D50');
     expect(colors.warn).toBe('#9C7344');
-    expect(colors.bad).toBe('#8C4F40');
-    expect(colors.ink3).toBe('#9CA3AF');
-    expect(colors.brand).toBe('#2F5D50');
-    expect(colors.bg).toBe('#F5F1E8');
+    expect(colors.bad).toBe('#B8423C');
   });
 });
 
@@ -139,9 +146,9 @@ describe('skeletonColors', () => {
   });
 
   it('matches the exact expected color pairs', () => {
-    expect(skeletonColors.good).toEqual(['#2F5D50', '#7BA88F']);
+    expect(skeletonColors.good).toEqual(['#25443B', '#7BA88F']);
     expect(skeletonColors.warn).toEqual(['#9C7344', '#C8955A']);
-    expect(skeletonColors.bad).toEqual(['#8C4F40', '#B86C5A']);
+    expect(skeletonColors.bad).toEqual(['#B8423C', '#D98C84']);
     expect(skeletonColors.none).toEqual(['#8A8275', '#8A8275']);
   });
 
