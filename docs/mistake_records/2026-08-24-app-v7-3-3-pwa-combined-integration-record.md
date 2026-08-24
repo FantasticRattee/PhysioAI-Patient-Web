@@ -5,12 +5,12 @@
 | Record ID | `app-v7-3-3-pwa-combined-integration-01` |
 | Date first observed | `2026-08-24` |
 | Last updated | `2026-08-24` |
-| Status | `open` |
+| Status | `in_progress` |
 | Failure category | `build` / `deployment` |
 | Owning area | `App/App-V5/Patient/` |
 | Affected version / contract | `codex/app-v7-3-3-pwa-patient`; PWA V7.3.3 combined design |
 | Evidence confidence | `Confirmed` |
-| Data / deployment impact | Local static-PWA hosting configuration changed; no raw media, model training, production data, or remote deployment changed yet. |
+| Data / deployment impact | GitHub branch is published and Railway source/root configuration now targets the PWA branch; no raw media, model training, or production data changed. Remote deployment is being retried after the recorded Node-runtime build failure. |
 
 ## Issue summary
 
@@ -40,6 +40,7 @@
 | E6 | 2026-08-24 ICT | Railway deployment audit | Current public `/`, `/index.html`, and `/therapist/plan.html` returned `404`, while `/health` returned `200`. | The inherited Railway configuration built only the backend and could not serve a Patient PWA. | Read-only route audit and `railway.json`/`backend/server.js` inspection. |
 | E7 | 2026-08-24 ICT | `npm audit --omit=dev --json` in `Patient/` | `22` advisories: `8 moderate`, `13 high`, `1 critical`, including build-tool transitive packages such as `tar`, Metro, and Expo CLI. | The PWA export/build still succeeds, but dependency remediation requires a separately reviewed Expo/Metro upgrade; no automatic audit fix was applied in this deployment scope. | `/tmp/physioai-patient-audit-v733.json` (local temporary audit output only). |
 | E8 | 2026-08-24 ICT | staged-tree check using `npm --prefix <temporary>/Patient ci` | `npm ci` reported `Missing: Patient@1.0.0 from lock file`; `--prefix` rewrote package-lock paths in that temporary invocation. | This is a test-harness invocation mismatch, not the Railway command: the approved Railway build uses `npm --prefix Patient install`. | Failed temporary staged-tree attempt; no source/lock file was adopted from that output. |
+| E9 | 2026-08-24 ICT | Railway deployment for GitHub commit `17d4be1` | `TypeError: configs.toReversed is not a function` in Expo Metro config; Railway selected Node `18.20.8`, while `react-native@0.81.5` requires `>=20.19.4`. | Source branch and root directory were correct; the build failed before PWA output because the package declared the obsolete permissive engine `>=18`. | Railway deployment log: build exit `1`; `EBADENGINE` warnings named Node 18 and React Native 0.81.5. |
 
 ## Cause assessment
 
@@ -65,6 +66,7 @@
 | A4 | 2026-08-24 | Build the Expo PWA from the repository root and serve it at the Railway root, preserving API and Therapist routes. Root hosting is selected because the Expo export uses root-absolute assets. | `package.json`, `railway.json`, `backend/server.js`, `Patient/src/core/api.js`, export/static-route tests. | Make an isolated V7.3.3 PWA branch deployable on the existing Railway service without changing API contracts. | `partial` | Root build, local production-like route checks, and focused tests pass; GitHub push, Railway source update, and public-route verification are pending. |
 | A5 | 2026-08-24 | Record the production-dependency audit result without applying an unreviewed bulk upgrade. | `npm audit --omit=dev --json` only. | Preserve a reproducible V7.3.3 build and avoid silently changing Expo/Metro/runtime compatibility while releasing the PWA branch. | `worked` | Audit findings are documented; remediation is deferred to a dependency-upgrade task. |
 | A6 | 2026-08-24 | Repeat the staged-tree check with the exact release installation behavior, then independently dry-check the package lock from `Patient/`. | Fresh staged tree: `npm install` then `npm run export:web`; local `npm ci --dry-run --ignore-scripts` from `Patient/`. | Prove the staged PWA does not depend on untracked local source while distinguishing the temporary `--prefix ci` artifact from lock validity. | `worked` | Fresh staged tree exported successfully; `npm ci --dry-run` passed when run from the actual package directory. |
+| A7 | 2026-08-24 | Raise the root Node engine floor to the Expo/React Native-supported version and lock the requirement with the Railway static-hosting test. | `package.json`, `tests/backend/pwa-static.test.js`, PWA deployment design. | Make Railpack select a Node runtime that can load Expo Metro's array helpers. | `partial` | Focused test and local root build pass; the corrected commit still needs Railway deployment/public-route verification. |
 
 ## Current disposition
 
@@ -94,6 +96,7 @@
 | Local production-like static routes | passed | 2026-08-24 `PORT=3100 node backend/server.js` plus route probes | `/`, `/practice`, manifest, PWA bundle/detector asset, `/health`, and `/therapist/plan.html` all returned `200`; detector SHA matched its source asset. |
 | Fresh staged-tree PWA export | passed | 2026-08-24 staged Git tree → `Patient npm install` → `npm run export:web` | Export succeeded with only staged vendor CommonJS bridge/source/assets; emitted EfficientDet, PhaseNet, and all Sit-to-Stand assets. |
 | Package lock dry check | passed | 2026-08-24 `cd Patient && npm ci --dry-run --ignore-scripts` | Lock validates when invoked from the package directory. |
+| Node engine regression test | passed after repair | 2026-08-24 `tests/backend/pwa-static.test.js` | Initial red state expected `>=20.19.4` but received `>=18`; final focused suite passed 3/3. |
 | Manual reproduction | blocked | 2026-08-24 local browser inspection | Mac is locked; no unlock or camera permission was requested/accepted. |
 
 ## Change impact
@@ -102,8 +105,9 @@
   session/UI/catalog assets/tests, PWA/model contracts, and listed docs.
 - Model artifact or training-data change: `no` — only checksum-verified runtime
   mirrors of an existing train-only export were added.
-- App/deployment/data change: local App-V5 PWA source and static hosting seam
-  changed; remote deployment is still pending.
+- App/deployment/data change: GitHub branch published; Railway PWA source/root
+  configuration applied; first remote build failed at the Node 18 runtime and
+  the corrected runtime commit is pending deployment verification.
 - Rollback or follow-up needed: retain frozen native Baseline #5 / native V7.3.3
   and V6/V6.1 PWA routes; run controlled browser camera evidence.
 - Related records: `2026-08-23-bottle-grab-v7-pwa-migration-mistake-record.md`,

@@ -113,9 +113,11 @@ The root path is required because Expo's production export references
 `/_expo/...` and `/assets/...` with root-absolute URLs. Mounting this export
 under `/patient/` would break those assets unless the export topology changed.
 At build time Railway runs the root `npm run build`, which installs the
-backend and Patient packages and exports `Patient/dist`; Express serves that
-directory plus HTML history fallback while leaving API and Therapist paths
-unaffected. In a deployed browser build `API_BASE` uses an explicit
+backend and Patient packages and exports `Patient/dist`. The root package must
+declare Node `>=20.19.4`, because Expo SDK 54/React Native 0.81 uses platform
+APIs absent from Railway's older Node 18 image. Express serves that directory
+plus HTML history fallback while leaving API and Therapist paths unaffected. In
+a deployed browser build `API_BASE` uses an explicit
 `EXPO_PUBLIC_API_BASE` when one is baked in, otherwise it uses the same
 serving origin. Camera frames and inference remain local to the browser.
 

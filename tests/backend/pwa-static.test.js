@@ -2,6 +2,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const request = require('supertest');
+const rootPackage = require('../../package.json');
 
 const tempPwaDir = fs.mkdtempSync(path.join(os.tmpdir(), 'physioai-pwa-static-'));
 fs.writeFileSync(path.join(tempPwaDir, 'index.html'), '<!doctype html><title>PhysioAI Patient PWA V7.3.3</title>');
@@ -33,5 +34,9 @@ describe('Patient PWA static hosting', () => {
     expect(manifest.text).toContain('PhysioAI Patient PWA V7.3.3');
     expect(health.status).toBe(200);
     expect(health.body.status).toBe('ok');
+  });
+
+  test('declares a Node version compatible with the Expo web export', () => {
+    expect(rootPackage.engines.node).toBe('>=20.19.4');
   });
 });
