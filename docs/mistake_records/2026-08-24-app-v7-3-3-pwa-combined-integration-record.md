@@ -10,7 +10,7 @@
 | Owning area | `App/App-V5/Patient/` |
 | Affected version / contract | `codex/app-v7-3-3-pwa-patient`; PWA V7.3.3 combined design |
 | Evidence confidence | `Confirmed` |
-| Data / deployment impact | GitHub branch is published and Railway source/root configuration now targets the PWA branch; the public Backend domain serves the PWA/API/Therapist routes. No raw media, model training, or production data changed. `JWT_SECRET` remains unset in Railway and needs a separately confirmed security update. |
+| Data / deployment impact | GitHub branch is published and Railway source/root configuration now targets the PWA branch; the public Backend domain serves the camera-resilience patch plus PWA/API/Therapist routes. No raw media, model training, or production data changed. `JWT_SECRET` remains unset in Railway and needs a separately confirmed security update. |
 
 ## Issue summary
 
@@ -81,12 +81,14 @@
 | A7 | 2026-08-24 | Raise the root Node engine floor to the Expo/React Native-supported version and lock the requirement with the Railway static-hosting test. | `package.json`, `tests/backend/pwa-static.test.js`, PWA deployment design. | Make Railpack select a Node runtime that can load Expo Metro's array helpers. | `partial` | Focused test and local root build pass; the corrected commit still needs Railway deployment/public-route verification. |
 | A8 | 2026-08-24 | Publish the Node-engine correction and redeploy the configured PWA branch from the Railway service root. | GitHub commit `9317b11`; Railway source `FantasticRattee/PhysioAI-Patient-Web`, branch `codex/app-v7-3-3-pwa-patient`, root `/`. | Complete the failed PWA build on a Node version compatible with Expo Metro. | `worked` | Railway marked the deployment successful. Public `/`, `/practice`, manifest, JS, detector, `/health`, and `/therapist/plan.html` checks returned `200`; detector SHA matched source. |
 | A9 | 2026-08-24 | Make iPhone PWA acquisition user-gesture-owned and split required Pose from optional Bottle/Hand frame tasks. | `PwaCameraSupport.web.js`, `MacCamera.web.js`, `SitToStandCamera.web.js`, `PracticeScreen.js`, explicit camera `Permissions-Policy`, focused/unit tests. | A permission/stream handoff reaches the camera component deterministically; an optional detector failure becomes diagnostic data rather than a whole-camera crash; any required Pose failure reports its stage. | `partial` | 17 focused tests, 894 full unit tests, and local PWA export pass. No new physical iPhone camera cycle has yet been observed. |
+| A10 | 2026-08-24 | Publish the camera-resilience patch and verify the active Railway build contains its public policy/bundle markers. | GitHub commit `5a46b34`; Railway active deployment. | Make the iPhone PWA patch available from the installed Home Screen origin. | `worked` | Railway marked deployment successful; public root sent `Permissions-Policy: camera=(self)`, the new JS bundle contained `camera_handoff`/`bottle_inference`, all required routes returned `200`, and EfficientDet SHA matched the source asset. |
 
 ## Current disposition
 
-- **Safe behavior now:** the public Railway root serves the PWA; it provides two
-  separate experimental routes, direct user-gesture camera acquisition, and
-  isolated task diagnostics without sending raw input outside the browser.
+- **Safe behavior now:** the public Railway root serves the deployed camera
+  patch; it provides two separate experimental routes, direct user-gesture
+  camera acquisition, and isolated task diagnostics without sending raw input
+  outside the browser.
 - **Do not claim:** real-camera count accuracy, detector recall, PhaseNet
   performance, authenticated-production security, patient-facing approval, or
   clinical use.
@@ -118,6 +120,7 @@
 | Rendered PWA landing page | passed | 2026-08-24 browser DOM check | Shows the PhysioAI Thai welcome and sign-in/register controls. |
 | iPhone camera evidence | failed / analyzed | 2026-08-24 user-provided PWA screen recording | Camera indicator appears, then the generic runtime-error card occurs before any successful landmark/ROI output. |
 | PWA camera resilience tests | passed after repair | 2026-08-24 focused Jest | Direct stream handoff, iPhone-safe constraints, stage errors, optional-task isolation, and `Permissions-Policy: camera=(self)` are covered. |
+| Deployed camera-patch probe | passed | 2026-08-24 Railway commit `5a46b34` | Root has `camera=(self)`; active JS contains the new stage markers; `/`, `/practice`, manifest, `/health`, and Therapist route returned `200`; EfficientDet SHA matched. |
 | Manual reproduction | blocked | 2026-08-24 local browser inspection | Mac is locked; no unlock or camera permission was requested/accepted. |
 
 ## Change impact
@@ -128,9 +131,9 @@
   mirrors of an existing train-only export were added.
 - App/deployment/data change: GitHub branch published; Railway PWA source/root
   configuration applied; first remote build failed at the Node 18 runtime, and
-  corrected commit `9317b11` deployed successfully. The camera patch is local
-  pending publication. Existing `DATABASE_URL` remains in Railway; no JWT
-  secret is configured yet.
+  corrected commit `9317b11` deployed successfully. Camera patch `5a46b34`
+  is now the active Railway build. Existing `DATABASE_URL` remains in Railway;
+  no JWT secret is configured yet.
 - Rollback or follow-up needed: retain frozen native Baseline #5 / native V7.3.3
   and V6/V6.1 PWA routes; run controlled browser camera evidence.
 - Related records: `2026-08-23-bottle-grab-v7-pwa-migration-mistake-record.md`,
