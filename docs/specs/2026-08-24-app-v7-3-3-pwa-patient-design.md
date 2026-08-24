@@ -1,6 +1,6 @@
 # App V7.3.3 Patient PWA — Bottle Diagnostics + Sit-to-Stand
 
-Status: **approved experimental PWA deployment candidate**
+Status: **deployed experimental PWA; static hosting verified**
 Date: 2026-08-24
 Working branch: `codex/app-v7-3-3-pwa-patient`
 Supersedes: no native/model baseline; this is a new PWA comparison lane.
@@ -25,6 +25,12 @@ authorized to publish from this branch to the existing Railway service after
 release checks, but it does **not** promote the App-V5 successor, validate
 either model, authorize patient-facing use, or modify any frozen native/model
 baseline.
+
+Deployment result (2026-08-24): commit `9317b11` is deployed to
+`https://physioai-backend-production.up.railway.app/`. The root PWA, browser
+history route, manifest, exported JS, EfficientDet asset, API health endpoint,
+and Therapist static route are verified. This proves hosting integration only;
+real browser-camera/person-in-frame behavior remains a separate gate.
 
 ## Preserved baselines and rollback
 

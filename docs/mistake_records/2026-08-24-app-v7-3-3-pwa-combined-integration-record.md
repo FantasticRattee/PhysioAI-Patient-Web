@@ -5,12 +5,12 @@
 | Record ID | `app-v7-3-3-pwa-combined-integration-01` |
 | Date first observed | `2026-08-24` |
 | Last updated | `2026-08-24` |
-| Status | `in_progress` |
+| Status | `open` |
 | Failure category | `build` / `deployment` |
 | Owning area | `App/App-V5/Patient/` |
 | Affected version / contract | `codex/app-v7-3-3-pwa-patient`; PWA V7.3.3 combined design |
 | Evidence confidence | `Confirmed` |
-| Data / deployment impact | GitHub branch is published and Railway source/root configuration now targets the PWA branch; no raw media, model training, or production data changed. Remote deployment is being retried after the recorded Node-runtime build failure. |
+| Data / deployment impact | GitHub branch is published and Railway source/root configuration now targets the PWA branch; the public Backend domain serves the PWA/API/Therapist routes. No raw media, model training, or production data changed. `JWT_SECRET` remains unset in Railway and needs a separately confirmed security update. |
 
 ## Issue summary
 
@@ -41,6 +41,7 @@
 | E7 | 2026-08-24 ICT | `npm audit --omit=dev --json` in `Patient/` | `22` advisories: `8 moderate`, `13 high`, `1 critical`, including build-tool transitive packages such as `tar`, Metro, and Expo CLI. | The PWA export/build still succeeds, but dependency remediation requires a separately reviewed Expo/Metro upgrade; no automatic audit fix was applied in this deployment scope. | `/tmp/physioai-patient-audit-v733.json` (local temporary audit output only). |
 | E8 | 2026-08-24 ICT | staged-tree check using `npm --prefix <temporary>/Patient ci` | `npm ci` reported `Missing: Patient@1.0.0 from lock file`; `--prefix` rewrote package-lock paths in that temporary invocation. | This is a test-harness invocation mismatch, not the Railway command: the approved Railway build uses `npm --prefix Patient install`. | Failed temporary staged-tree attempt; no source/lock file was adopted from that output. |
 | E9 | 2026-08-24 ICT | Railway deployment for GitHub commit `17d4be1` | `TypeError: configs.toReversed is not a function` in Expo Metro config; Railway selected Node `18.20.8`, while `react-native@0.81.5` requires `>=20.19.4`. | Source branch and root directory were correct; the build failed before PWA output because the package declared the obsolete permissive engine `>=18`. | Railway deployment log: build exit `1`; `EBADENGINE` warnings named Node 18 and React Native 0.81.5. |
+| E10 | 2026-08-24 ICT | Railway service-variable audit after successful deploy | Only `DATABASE_URL` is configured; no `JWT_SECRET` service variable exists. | The API currently falls back to its documented development JWT secret, which is functional but not safe for a production-login claim. | Railway Variables page showed one masked `DATABASE_URL` variable only; no value was read. |
 
 ## Cause assessment
 
@@ -67,20 +68,21 @@
 | A5 | 2026-08-24 | Record the production-dependency audit result without applying an unreviewed bulk upgrade. | `npm audit --omit=dev --json` only. | Preserve a reproducible V7.3.3 build and avoid silently changing Expo/Metro/runtime compatibility while releasing the PWA branch. | `worked` | Audit findings are documented; remediation is deferred to a dependency-upgrade task. |
 | A6 | 2026-08-24 | Repeat the staged-tree check with the exact release installation behavior, then independently dry-check the package lock from `Patient/`. | Fresh staged tree: `npm install` then `npm run export:web`; local `npm ci --dry-run --ignore-scripts` from `Patient/`. | Prove the staged PWA does not depend on untracked local source while distinguishing the temporary `--prefix ci` artifact from lock validity. | `worked` | Fresh staged tree exported successfully; `npm ci --dry-run` passed when run from the actual package directory. |
 | A7 | 2026-08-24 | Raise the root Node engine floor to the Expo/React Native-supported version and lock the requirement with the Railway static-hosting test. | `package.json`, `tests/backend/pwa-static.test.js`, PWA deployment design. | Make Railpack select a Node runtime that can load Expo Metro's array helpers. | `partial` | Focused test and local root build pass; the corrected commit still needs Railway deployment/public-route verification. |
+| A8 | 2026-08-24 | Publish the Node-engine correction and redeploy the configured PWA branch from the Railway service root. | GitHub commit `9317b11`; Railway source `FantasticRattee/PhysioAI-Patient-Web`, branch `codex/app-v7-3-3-pwa-patient`, root `/`. | Complete the failed PWA build on a Node version compatible with Expo Metro. | `worked` | Railway marked the deployment successful. Public `/`, `/practice`, manifest, JS, detector, `/health`, and `/therapist/plan.html` checks returned `200`; detector SHA matched source. |
 
 ## Current disposition
 
-- **Safe behavior now:** local PWA code, assets, contracts, export, and static
-  hosting seam provide two separate experimental routes; no raw input leaves
-  the browser.
+- **Safe behavior now:** the public Railway root serves the PWA; it provides two
+  separate experimental routes and no raw input leaves the browser.
 - **Do not claim:** real-camera count accuracy, detector recall, PhaseNet
-  performance, validation, deployment, patient-facing approval, or clinical use.
+  performance, authenticated-production security, patient-facing approval, or
+  clinical use.
 - **Dependency caveat:** the release uses the existing Expo dependency tree with
   the recorded audit advisories; no `npm audit fix` or version upgrade was
   applied as part of this PWA release.
-- **Smallest next evidence or action:** complete the scrubbed GitHub branch
-  publication, select that branch in Railway, verify its public static/API
-  routes, then unlock the Mac and run controlled real browser-camera cycles.
+- **Smallest next evidence or action:** with explicit confirmation, set a new
+  strong Railway `JWT_SECRET`; then open the deployed PWA in a real browser,
+  grant camera access, and run controlled browser-camera cycles.
 - **Requires new data / model / dependency / review?:** no source change is
   pending; real-camera evidence and human review are still required.
 
@@ -97,6 +99,9 @@
 | Fresh staged-tree PWA export | passed | 2026-08-24 staged Git tree → `Patient npm install` → `npm run export:web` | Export succeeded with only staged vendor CommonJS bridge/source/assets; emitted EfficientDet, PhaseNet, and all Sit-to-Stand assets. |
 | Package lock dry check | passed | 2026-08-24 `cd Patient && npm ci --dry-run --ignore-scripts` | Lock validates when invoked from the package directory. |
 | Node engine regression test | passed after repair | 2026-08-24 `tests/backend/pwa-static.test.js` | Initial red state expected `>=20.19.4` but received `>=18`; final focused suite passed 3/3. |
+| Railway deploy | passed after Node-engine correction | 2026-08-24 GitHub commit `9317b11` | Service source is `FantasticRattee/PhysioAI-Patient-Web`, branch `codex/app-v7-3-3-pwa-patient`, root `/`. |
+| Public PWA route probe | passed | 2026-08-24 `https://physioai-backend-production.up.railway.app` | `/`, `/practice`, manifest, JS, EfficientDet asset, `/health`, and `/therapist/plan.html` returned `200`; detected asset SHA was `40338edf…96dbf58`. |
+| Rendered PWA landing page | passed | 2026-08-24 browser DOM check | Shows the PhysioAI Thai welcome and sign-in/register controls. |
 | Manual reproduction | blocked | 2026-08-24 local browser inspection | Mac is locked; no unlock or camera permission was requested/accepted. |
 
 ## Change impact
@@ -106,8 +111,9 @@
 - Model artifact or training-data change: `no` — only checksum-verified runtime
   mirrors of an existing train-only export were added.
 - App/deployment/data change: GitHub branch published; Railway PWA source/root
-  configuration applied; first remote build failed at the Node 18 runtime and
-  the corrected runtime commit is pending deployment verification.
+  configuration applied; first remote build failed at the Node 18 runtime, and
+  corrected commit `9317b11` deployed successfully. Existing `DATABASE_URL`
+  remains in Railway; no JWT secret is configured yet.
 - Rollback or follow-up needed: retain frozen native Baseline #5 / native V7.3.3
   and V6/V6.1 PWA routes; run controlled browser camera evidence.
 - Related records: `2026-08-23-bottle-grab-v7-pwa-migration-mistake-record.md`,
